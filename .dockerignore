@@ -1,0 +1,32 @@
+node_modules
+npm-debug.log*
+.git
+.gitignore
+.vscode
+.idea
+.DS_Store
+
+# Build outputs
+dist
+dist-ssr
+*.local
+
+# Env / secrets
+.env
+.env.*
+!.env.example
+
+# Editor / cache
+.editorconfig
+.eslintcache
+.cache
+
+# Docker
+Dockerfile*
+docker-compose*.yml
+.dockerignore
+
+# Misc
+README.md
+*.log
+coverage

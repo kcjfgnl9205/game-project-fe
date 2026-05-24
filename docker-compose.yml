@@ -1,0 +1,27 @@
+services:
+  # 개발: docker compose --profile dev up
+  web-dev:
+    profiles: ['dev']
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    container_name: game-project-dev
+    ports:
+      - '5173:5173'
+    volumes:
+      - .:/app
+      - /app/node_modules # 호스트 node_modules 덮어쓰기 방지
+    environment:
+      - CHOKIDAR_USEPOLLING=true # 일부 OS에서 HMR 파일 변경 감지용
+    restart: unless-stopped
+
+  # 프로덕션: docker compose --profile prod up --build
+  web-prod:
+    profiles: ['prod']
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: game-project-prod
+    ports:
+      - '8080:80'
+    restart: unless-stopped

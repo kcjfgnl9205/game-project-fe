@@ -1,0 +1,14 @@
+# syntax=docker/dockerfile:1.7
+
+FROM node:22-alpine
+
+WORKDIR /app
+
+COPY package.json package-lock.json ./
+RUN npm ci
+
+# 소스는 docker-compose에서 볼륨 마운트로 들어옴 → 여기선 복사 생략
+EXPOSE 5173
+
+# --host 로 컨테이너 외부에서 접근 가능
+CMD ["npm", "run", "dev", "--", "--host", "0.0.0.0"]

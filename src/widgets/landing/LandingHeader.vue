@@ -2,12 +2,22 @@
 import { RouterLink } from 'vue-router'
 import BaseButton from '@/shared/ui/BaseButton.vue'
 import ThemeToggle from '@/shared/ui/ThemeToggle.vue'
+import { useAuthStore } from '@/shared/stores'
+import { useNavigation } from '@/shared/composables'
+
+const auth = useAuthStore()
+const nav = useNavigation()
 
 const navItems = [
   { label: '홈', to: '/' },
   { label: '게임 목록', to: '/games' },
   { label: '공지사항', to: '/notice' },
 ]
+
+async function onLogout() {
+  await auth.logout()
+  nav.toHome()
+}
 </script>
 
 <template>
@@ -38,9 +48,20 @@ const navItems = [
       <div class="flex items-center gap-3">
         <ThemeToggle />
         <BaseButton
+          v-if="auth.isAuthenticated"
+          variant="ghost"
+          size="sm"
+          class="border! border-border-strong! text-text-secondary! hover:text-text-primary!"
+          @click="onLogout"
+        >
+          로그아웃
+        </BaseButton>
+        <BaseButton
+          v-else
           variant="ghost"
           size="sm"
           class="border! border-brand! text-brand! hover:bg-brand-soft!"
+          @click="nav.toLogin"
         >
           로그인
         </BaseButton>

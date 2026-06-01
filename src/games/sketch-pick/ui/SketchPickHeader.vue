@@ -1,6 +1,5 @@
 <script setup lang="ts">
-import { useRouter } from 'vue-router'
-import { ROUTE_NAME } from '@/app/router/router-name'
+import { useNavigation } from '@/shared/composables'
 
 defineProps<{
   gameName: string
@@ -10,20 +9,11 @@ defineProps<{
   seconds: number
 }>()
 
-const router = useRouter()
+const nav = useNavigation()
 
-const onExit = () => {
-  // 이전 history가 있으면 back으로 detail entry를 제거 (브라우저 뒤로가기가 자연스러워짐).
-  // 직접 URL/공유 링크로 진입해 history가 없으면 방 목록으로 fallback push.
-  if (window.history.state?.back) {
-    router.back()
-  } else {
-    router.push({
-      name: ROUTE_NAME.GAME_ROOMS,
-      params: { gameId: 'sketch-pick' },
-    })
-  }
-}
+// 이전 history가 있으면 back으로 detail entry를 제거 (브라우저 뒤로가기가 자연스러워짐).
+// 직접 URL/공유 링크로 진입해 history가 없으면 방 목록으로 fallback.
+const onExit = () => nav.backOr(() => nav.toGameRooms('sketch-pick'))
 </script>
 
 <template>

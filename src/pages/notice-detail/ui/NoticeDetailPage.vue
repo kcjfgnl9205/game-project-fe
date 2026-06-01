@@ -1,15 +1,38 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { ref, watch } from 'vue'
 import { RouterLink, useRoute } from 'vue-router'
-import { findNoticeById } from '@/shared/lib/notices'
+import { fetchNotice } from '@/entities/notice/api'
+import type { Notice } from '@/entities/notice/model'
 import { ROUTE_NAME } from '@/app/router/router-name'
+import { ApiError } from '@/shared/api'
+import { formatDate } from '@/shared/utils'
 
 const route = useRoute()
-const notice = computed(() => {
-  const id = route.params.id
-  if (typeof id !== 'string') return undefined
-  return findNoticeById(id)
-})
+const notice = ref<Notice | null>(null)
+const loading = ref(true)
+const error = ref<string | null>(null)
+
+async function load(id: string) {
+  loading.value = true
+  error.value = null
+  try {
+    notice.value = await fetchNotice(id)
+  } catch (e) {
+    notice.value = null
+    error.value = e instanceof ApiError ? e.message : '공지사항을 불러오지 못했습니다.'
+  } finally {
+    loading.value = false
+  }
+}
+
+// 같은 라우트에서 id만 바뀌어도 다시 불러온다.
+watch(
+  () => route.params.id,
+  (id) => {
+    if (typeof id === 'string') load(id)
+  },
+  { immediate: true },
+)
 </script>
 
 <template>
@@ -22,16 +45,12 @@ const notice = computed(() => {
       목록으로
     </RouterLink>
 
-    <article v-if="notice">
+    <p v-if="loading" class="py-20 text-center text-sm text-text-muted">불러오는 중…</p>
+
+    <article v-else-if="notice">
       <header class="border-b border-border pb-6">
         <div class="mb-3 flex items-center gap-2">
-          <span
-            v-if="notice.isNew"
-            class="rounded-md bg-brand px-2 py-0.5 text-xs font-bold text-on-brand"
-          >
-            NEW
-          </span>
-          <span class="text-xs text-text-muted">{{ notice.date }}</span>
+          <span class="text-xs text-text-muted">{{ formatDate(notice.createdAt) }}</span>
         </div>
         <h1 class="text-3xl font-bold text-text-primary">{{ notice.title }}</h1>
       </header>
@@ -43,7 +62,9 @@ const notice = computed(() => {
 
     <div v-else class="py-20 text-center">
       <p class="text-lg font-semibold text-text-primary">공지사항을 찾을 수 없습니다</p>
-      <p class="mt-2 text-sm text-text-secondary">삭제되었거나 잘못된 주소일 수 있어요.</p>
+      <p class="mt-2 text-sm text-text-secondary">
+        {{ error ?? '삭제되었거나 잘못된 주소일 수 있어요.' }}
+      </p>
     </div>
   </section>
 </template>

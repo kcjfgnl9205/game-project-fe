@@ -40,3 +40,6 @@ __screenshots__/
 
 # 로컬 HTTPS 인증서 (각자 `npm run cert`로 생성, 개인 키 포함)
 .certs/
+
+# 작업 일지 등 로컬 문서 (git 추적 제외)
+docs/

@@ -1,20 +1,21 @@
 <script setup lang="ts">
-import { ref } from 'vue'
-import type { ChatMessage } from '@/games/sketch-pick/model/mock'
+import { computed, ref } from 'vue'
+import { useAuthStore } from '@/shared/stores'
+import { getGuestId } from '@/shared/lib/guest'
+import { useGameStore } from '@/games/sketch-pick/model/game.store'
 
-const props = defineProps<{ messages: ChatMessage[] }>()
+const game = useGameStore()
+const auth = useAuthStore()
+
+const myPlayerId = computed(() =>
+  auth.isAuthenticated ? `user:${auth.user?.id}` : `guest:${getGuestId()}`,
+)
 
 const input = ref('')
-const localMessages = ref<ChatMessage[]>([...props.messages])
 
+// 서버가 chat:message로 발신자에게도 되돌려주므로 낙관적 추가는 하지 않는다.
 const onSend = () => {
-  const text = input.value.trim()
-  if (text.length === 0) return
-  localMessages.value.push({
-    id: `local-${Date.now()}`,
-    nickname: '나',
-    text,
-  })
+  game.sendChat(input.value)
   input.value = ''
 }
 </script>
@@ -27,18 +28,11 @@ const onSend = () => {
     </header>
 
     <ul class="flex-1 space-y-2 overflow-y-auto p-3">
-      <li
-        v-for="msg in localMessages"
-        :key="msg.id"
-        :class="msg.isSystem ? 'flex justify-center' : ''"
-      >
-        <p
-          v-if="msg.isSystem"
-          class="rounded-full bg-bg-elevated px-3 py-1 text-xs text-text-secondary"
+      <li v-for="msg in game.chat" :key="msg.key">
+        <div
+          class="rounded-xl p-3"
+          :class="msg.senderId === myPlayerId ? 'bg-brand-soft' : 'bg-bg-elevated'"
         >
-          {{ msg.text }}
-        </p>
-        <div v-else class="rounded-xl bg-bg-elevated p-3">
           <p class="text-xs font-semibold text-brand">{{ msg.nickname }}</p>
           <p class="mt-0.5 text-sm text-text-primary">{{ msg.text }}</p>
         </div>

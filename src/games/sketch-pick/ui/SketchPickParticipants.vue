@@ -21,7 +21,9 @@ defineProps<{ participants: Participant[] }>()
         :class="
           p.isDrawing
             ? 'border border-brand bg-brand-soft'
-            : 'hover:bg-bg-card-hover'
+            : p.isMe
+              ? 'bg-bg-elevated ring-1 ring-brand/40'
+              : 'hover:bg-bg-card-hover'
         "
       >
         <span
@@ -40,6 +42,12 @@ defineProps<{ participants: Participant[] }>()
               {{ p.nickname }}
             </span>
             <span v-if="p.isHost" class="text-xs text-warning" aria-hidden="true">👑</span>
+            <span
+              v-if="p.isMe"
+              class="shrink-0 rounded-md bg-brand px-1.5 py-0.5 text-[10px] font-bold text-on-brand"
+            >
+              나
+            </span>
           </div>
           <p class="text-xs text-text-secondary">{{ p.score }}점</p>
         </div>

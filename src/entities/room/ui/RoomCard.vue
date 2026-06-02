@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import BaseBadge from '@/shared/ui/BaseBadge.vue'
-import type { RoomItem } from '@/shared/lib/rooms'
+import type { RoomListItem } from '@/entities/room/model'
 
-const props = defineProps<{ room: RoomItem }>()
+const props = defineProps<{ room: RoomListItem }>()
 
 const MAX_VISIBLE_AVATARS = 4
 
@@ -30,23 +30,23 @@ const isFull = computed(
     <header class="mb-4 flex items-start justify-between gap-3">
       <div class="flex min-w-0 items-center gap-2">
         <span
-          :class="room.isLocked ? 'text-warning' : 'text-text-muted'"
+          :class="room.isPrivate ? 'text-warning' : 'text-text-muted'"
           aria-hidden="true"
         >
-          {{ room.isLocked ? '🔒' : '🔓' }}
+          {{ room.isPrivate ? '🔒' : '🔓' }}
         </span>
         <h3 class="truncate text-base font-bold text-text-primary">
           {{ room.name }}
         </h3>
       </div>
-      <BaseBadge :tone="room.status === 'waiting' ? 'brand' : 'warning'">
-        {{ room.status === 'waiting' ? '대기 중' : '게임 중' }}
+      <BaseBadge :tone="room.status === 'WAITING' ? 'brand' : 'warning'">
+        {{ room.status === 'WAITING' ? '대기 중' : '게임 중' }}
       </BaseBadge>
     </header>
 
     <div class="flex items-center gap-2 text-sm text-text-secondary">
-      <span class="text-warning" aria-hidden="true">👑</span>
-      {{ room.hostNickname }}
+      <span aria-hidden="true">⏱</span>
+      {{ room.drawTimeSec }}초 그리기
     </div>
 
     <footer

@@ -24,6 +24,8 @@ export class ApiError extends Error {
 
 interface AuthConfig {
   getAccessToken: () => string | null
+  // 비회원 식별자. 회원 토큰이 없을 때 x-guest-id 헤더로 부착된다.
+  getGuestId: () => string
   // 401 발생 시 호출. 새 accessToken을 반환하면 원 요청을 재시도한다.
   onUnauthorized: () => Promise<string | null>
 }
@@ -44,7 +46,9 @@ export const http: AxiosInstance = axios.create({
 http.interceptors.request.use((config: InternalAxiosRequestConfig) => {
   if (!config.skipAuth) {
     const token = authConfig?.getAccessToken()
+    // 회원은 Bearer, 비회원은 x-guest-id 둘 중 하나만 보낸다.
     if (token) config.headers.Authorization = `Bearer ${token}`
+    else if (authConfig) config.headers['x-guest-id'] = authConfig.getGuestId()
   }
   return config
 })

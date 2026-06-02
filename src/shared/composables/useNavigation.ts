@@ -13,6 +13,9 @@ export function useNavigation() {
     toLogin: () => router.push({ name: ROUTE_NAME.LOGIN }),
     toGameRooms: (gameId: string) =>
       router.push({ name: ROUTE_NAME.GAME_ROOMS, params: { gameId } }),
+    // 게임 플레이 화면. 라우트 이름이 곧 gameId (예: 'sketch-pick').
+    toGameRoom: (gameId: string, roomId: string) =>
+      router.push({ name: gameId, params: { roomId } }),
 
     back: () => router.back(),
 

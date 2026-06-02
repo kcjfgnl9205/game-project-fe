@@ -1,13 +1,9 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import BaseButton from '@/shared/ui/BaseButton.vue'
-import { useModalStore } from '@/shared/stores'
-
-export interface CreateRoomResult {
-  name: string
-  isPrivate: boolean
-  password?: string
-}
+import { useModalStore, useAuthStore } from '@/shared/stores'
+import { getGuestNickname, setGuestNickname } from '@/shared/lib/guest'
+import type { CreateRoomRequest } from '@/entities/room/model'
 
 interface Props {
   modalId: number
@@ -16,14 +12,23 @@ interface Props {
 const props = defineProps<Props>()
 
 const modal = useModalStore()
+const auth = useAuthStore()
+const isGuest = computed(() => !auth.isAuthenticated)
 
 const name = ref('')
+const maxPlayers = ref(4)
+const drawTimeSec = ref(60)
 const isPrivate = ref(false)
 const password = ref('')
+const nickname = ref(isGuest.value ? getGuestNickname() : '')
+
+const MAX_PLAYER_OPTIONS = [2, 3, 4, 5, 6, 7, 8, 9, 10]
+const DRAW_TIME_OPTIONS = [30, 60, 90, 120, 180]
 
 const canSubmit = computed(() => {
   if (name.value.trim().length === 0) return false
   if (isPrivate.value && password.value.trim().length === 0) return false
+  if (isGuest.value && nickname.value.trim().length === 0) return false
   return true
 })
 
@@ -33,11 +38,21 @@ const onCancel = () => {
 
 const onSubmit = () => {
   if (!canSubmit.value) return
-  const result: CreateRoomResult = {
+
+  const result: CreateRoomRequest = {
     name: name.value.trim(),
+    maxPlayers: maxPlayers.value,
+    drawTimeSec: drawTimeSec.value,
     isPrivate: isPrivate.value,
     password: isPrivate.value ? password.value.trim() : undefined,
   }
+
+  if (isGuest.value) {
+    const nick = nickname.value.trim()
+    setGuestNickname(nick) // 다음 입장/생성 때 재사용
+    result.nickname = nick
+  }
+
   modal.close(props.modalId, result)
 }
 </script>
@@ -62,11 +77,55 @@ const onSubmit = () => {
         v-model="name"
         type="text"
         placeholder="방 이름을 입력하세요"
-        maxlength="30"
+        maxlength="50"
         autocomplete="off"
         autofocus
         class="mt-3 h-12 w-full rounded-xl border border-border bg-bg-elevated px-4 text-sm text-text-primary transition-colors placeholder:text-text-muted focus:border-brand focus:outline-none"
       />
+    </div>
+
+    <!-- 게스트 닉네임 -->
+    <div v-if="isGuest" class="mt-5">
+      <label for="create-room-nickname" class="block text-sm font-semibold text-text-primary">
+        닉네임
+      </label>
+      <input
+        id="create-room-nickname"
+        v-model="nickname"
+        type="text"
+        placeholder="표시할 닉네임"
+        maxlength="30"
+        autocomplete="off"
+        class="mt-3 h-12 w-full rounded-xl border border-border bg-bg-elevated px-4 text-sm text-text-primary transition-colors placeholder:text-text-muted focus:border-brand focus:outline-none"
+      />
+    </div>
+
+    <!-- 인원 / 그리기 시간 -->
+    <div class="mt-5 grid grid-cols-2 gap-4">
+      <div>
+        <label for="create-room-max" class="block text-sm font-semibold text-text-primary">
+          최대 인원
+        </label>
+        <select
+          id="create-room-max"
+          v-model.number="maxPlayers"
+          class="mt-3 h-12 w-full rounded-xl border border-border bg-bg-elevated px-4 text-sm text-text-primary focus:border-brand focus:outline-none"
+        >
+          <option v-for="n in MAX_PLAYER_OPTIONS" :key="n" :value="n">{{ n }}명</option>
+        </select>
+      </div>
+      <div>
+        <label for="create-room-time" class="block text-sm font-semibold text-text-primary">
+          그리기 시간
+        </label>
+        <select
+          id="create-room-time"
+          v-model.number="drawTimeSec"
+          class="mt-3 h-12 w-full rounded-xl border border-border bg-bg-elevated px-4 text-sm text-text-primary focus:border-brand focus:outline-none"
+        >
+          <option v-for="s in DRAW_TIME_OPTIONS" :key="s" :value="s">{{ s }}초</option>
+        </select>
+      </div>
     </div>
 
     <!-- 비밀 방 토글 -->

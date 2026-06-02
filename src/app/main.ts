@@ -6,6 +6,7 @@ import { registerProviders } from './providers'
 import { useTheme } from '@/shared/composables/useTheme'
 import { configureAuth } from '@/shared/api'
 import { useAuthStore } from '@/shared/stores'
+import { getGuestId } from '@/shared/lib/guest'
 
 useTheme() // FOUC 방지: 마운트 전에 .dark 클래스 적용
 
@@ -15,6 +16,7 @@ registerProviders(app) // pinia + router (이후 useAuthStore 사용 가능)
 const auth = useAuthStore()
 configureAuth({
   getAccessToken: () => auth.accessToken,
+  getGuestId,
   onUnauthorized: () => auth.refresh(),
 })
 

@@ -7,7 +7,7 @@ import SketchPickCanvas from './SketchPickCanvas.vue'
 import SketchPickChat from './SketchPickChat.vue'
 import { PROMPT, type Participant } from '@/games/sketch-pick/model/mock'
 import { useGameStore } from '@/games/sketch-pick/model/game.store'
-import { fetchRoom } from '@/entities/room/api'
+import { fetchRoom, leaveRoom } from '@/entities/room/api'
 import type { Room } from '@/entities/room/model'
 import { ApiError } from '@/shared/api'
 import { useAuthStore } from '@/shared/stores'
@@ -19,6 +19,7 @@ const game = useGameStore()
 
 const room = ref<Room | null>(null)
 const error = ref<string | null>(null)
+const hasLeft = ref(false)
 
 const roomId = computed(() =>
   typeof route.params.roomId === 'string' ? route.params.roomId : null,
@@ -47,6 +48,19 @@ const participants = computed<Participant[]>(() =>
 const seconds = ref(56)
 let timer: ReturnType<typeof setInterval> | null = null
 
+async function leaveCurrentRoom() {
+  if (!roomId.value || hasLeft.value) return
+  hasLeft.value = true
+
+  try {
+    await leaveRoom(roomId.value)
+  } catch {
+    // REST leave가 실패해도 소켓 disconnect로 서버에서 cleanup을 시도한다.
+  } finally {
+    game.disconnect()
+  }
+}
+
 onMounted(async () => {
   if (!roomId.value) return
 
@@ -69,14 +83,16 @@ onMounted(async () => {
   }, 1000)
 })
 
-// 화면 이탈/탭 닫기 → 소켓 종료. 서버가 자동으로 방에서 빼준다(REST leave 불필요).
-onBeforeRouteLeave(() => {
-  game.disconnect()
+// 화면 이탈 / 라우트 이동 시 명시적 REST leave + 소켓 disconnect.
+onBeforeRouteLeave(async () => {
+  await leaveCurrentRoom()
 })
 
 onUnmounted(() => {
   if (timer) clearInterval(timer)
-  game.disconnect()
+  if (!hasLeft.value) {
+    void leaveCurrentRoom()
+  }
 })
 </script>
 

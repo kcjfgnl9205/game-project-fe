@@ -1,8 +1,18 @@
 <script setup lang="ts">
 import { ref } from 'vue'
-import { palette } from '@/games/sketch-pick/model/mock'
 
-defineProps<{ prompt: string }>()
+const palette = [
+  '#000000',
+  '#ffffff',
+  '#ef4444',
+  '#f97316',
+  '#eab308',
+  '#22c55e',
+  '#3b82f6',
+  '#6366f1',
+  '#a855f7',
+  '#ec4899',
+]
 
 const selectedColor = ref<string>(palette[0] ?? '#000000')
 const brushSize = ref(5)
@@ -18,16 +28,6 @@ const increaseSize = () => {
 
 <template>
   <section class="flex flex-1 flex-col bg-bg">
-    <!-- 제시어 -->
-    <div class="flex h-12 shrink-0 items-center justify-center gap-3 border-b border-border">
-      <span class="text-sm text-text-secondary">제시어:</span>
-      <span
-        class="rounded-md bg-brand px-4 py-1 text-sm font-bold text-on-brand"
-      >
-        {{ prompt }}
-      </span>
-    </div>
-
     <!-- 캔버스 -->
     <div class="flex flex-1 items-center justify-center overflow-auto p-6">
       <div
@@ -37,9 +37,7 @@ const increaseSize = () => {
     </div>
 
     <!-- 툴바 -->
-    <div
-      class="flex h-14 shrink-0 items-center gap-4 border-t border-border bg-bg-card px-4"
-    >
+    <div class="flex h-14 shrink-0 items-center gap-4 border-t border-border bg-bg-card px-4">
       <button
         type="button"
         aria-label="팔레트"
@@ -55,11 +53,7 @@ const increaseSize = () => {
           type="button"
           :aria-label="`색상 ${color}`"
           class="h-6 w-6 cursor-pointer rounded-full border transition-transform hover:scale-110"
-          :class="
-            selectedColor === color
-              ? 'border-brand ring-2 ring-brand/40'
-              : 'border-border'
-          "
+          :class="selectedColor === color ? 'border-brand ring-2 ring-brand/40' : 'border-border'"
           :style="{ backgroundColor: color }"
           @click="selectedColor = color"
         />

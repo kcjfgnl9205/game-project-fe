@@ -22,7 +22,7 @@ const isPrivate = ref(false)
 const password = ref('')
 const nickname = ref(isGuest.value ? getGuestNickname() : '')
 
-const MAX_PLAYER_OPTIONS = [2, 3, 4, 5, 6, 7, 8, 9, 10]
+const MAX_PLAYER_OPTIONS = [2, 3, 4, 5, 6, 7, 8]
 const DRAW_TIME_OPTIONS = [30, 60, 90, 120, 180]
 
 const canSubmit = computed(() => {

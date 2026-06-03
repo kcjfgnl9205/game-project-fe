@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import BaseBadge from '@/shared/ui/BaseBadge.vue'
+import { Badge } from '@/shared/ui'
 import type { RoomListItem } from '@/entities/room/model'
 
 const props = defineProps<{ room: RoomListItem }>()
@@ -8,19 +8,12 @@ const props = defineProps<{ room: RoomListItem }>()
 const MAX_VISIBLE_AVATARS = 4
 
 const visibleSlots = computed(() =>
-  Array.from(
-    { length: Math.min(props.room.currentPlayers, MAX_VISIBLE_AVATARS) },
-    (_, i) => i + 1,
-  ),
+  Array.from({ length: Math.min(props.room.currentPlayers, MAX_VISIBLE_AVATARS) }, (_, i) => i + 1),
 )
 
-const overflow = computed(() =>
-  Math.max(0, props.room.currentPlayers - MAX_VISIBLE_AVATARS),
-)
+const overflow = computed(() => Math.max(0, props.room.currentPlayers - MAX_VISIBLE_AVATARS))
 
-const isFull = computed(
-  () => props.room.currentPlayers >= props.room.maxPlayers,
-)
+const isFull = computed(() => props.room.currentPlayers >= props.room.maxPlayers)
 </script>
 
 <template>
@@ -29,19 +22,16 @@ const isFull = computed(
   >
     <header class="mb-4 flex items-start justify-between gap-3">
       <div class="flex min-w-0 items-center gap-2">
-        <span
-          :class="room.isPrivate ? 'text-warning' : 'text-text-muted'"
-          aria-hidden="true"
-        >
+        <span :class="room.isPrivate ? 'text-warning' : 'text-text-muted'" aria-hidden="true">
           {{ room.isPrivate ? '🔒' : '🔓' }}
         </span>
         <h3 class="truncate text-base font-bold text-text-primary">
           {{ room.name }}
         </h3>
       </div>
-      <BaseBadge :tone="room.status === 'WAITING' ? 'brand' : 'warning'">
+      <Badge :tone="room.status === 'WAITING' ? 'brand' : 'warning'">
         {{ room.status === 'WAITING' ? '대기 중' : '게임 중' }}
-      </BaseBadge>
+      </Badge>
     </header>
 
     <div class="flex items-center gap-2 text-sm text-text-secondary">
@@ -49,15 +39,10 @@ const isFull = computed(
       {{ room.drawTimeSec }}초 그리기
     </div>
 
-    <footer
-      class="mt-6 flex items-center justify-between border-t border-border pt-4"
-    >
+    <footer class="mt-6 flex items-center justify-between border-t border-border pt-4">
       <span class="inline-flex items-center gap-1.5 text-sm">
         <span aria-hidden="true" class="text-text-muted">👥</span>
-        <span
-          :class="isFull ? 'text-warning' : 'text-brand'"
-          class="font-semibold"
-        >
+        <span :class="isFull ? 'text-warning' : 'text-brand'" class="font-semibold">
           {{ room.currentPlayers }}
         </span>
         <span class="text-text-muted">/ {{ room.maxPlayers }}명</span>

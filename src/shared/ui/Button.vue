@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue'
+import { icons, type IconName } from '@/shared/ui/icons'
 
 type Variant = 'primary' | 'secondary' | 'ghost'
 type Size = 'sm' | 'md' | 'lg'
@@ -8,6 +9,7 @@ interface Props {
   size?: Size
   glow?: boolean
   type?: 'button' | 'submit' | 'reset'
+  icon?: IconName // 텍스트 왼쪽에 표시할 아이콘 이름(레지스트리 등록명)
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -45,6 +47,7 @@ const glowClass = computed(() =>
       glowClass,
     ]"
   >
+    <component :is="icons[icon]" v-if="icon" class="size-[1.15em] shrink-0" aria-hidden="true" />
     <slot />
   </button>
 </template>

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { RouterLink } from 'vue-router'
-import BaseButton from '@/shared/ui/BaseButton.vue'
+import { Button } from '@/shared/ui'
 import ThemeToggle from '@/shared/ui/ThemeToggle.vue'
 import { useAuthStore } from '@/shared/stores'
 import { useNavigation } from '@/shared/composables'
@@ -47,7 +47,7 @@ async function onLogout() {
 
       <div class="flex items-center gap-3">
         <ThemeToggle />
-        <BaseButton
+        <Button
           v-if="auth.isAuthenticated"
           variant="ghost"
           size="sm"
@@ -55,8 +55,8 @@ async function onLogout() {
           @click="onLogout"
         >
           로그아웃
-        </BaseButton>
-        <BaseButton
+        </Button>
+        <Button
           v-else
           variant="ghost"
           size="sm"
@@ -64,7 +64,7 @@ async function onLogout() {
           @click="nav.toLogin"
         >
           로그인
-        </BaseButton>
+        </Button>
       </div>
     </div>
   </header>

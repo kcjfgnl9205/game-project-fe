@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import BaseButton from '@/shared/ui/BaseButton.vue'
+import { Button } from '@/shared/ui'
 </script>
 
 <template>
@@ -18,10 +18,10 @@ import BaseButton from '@/shared/ui/BaseButton.vue'
           회원가입 없이도 게임을 즐길 수 있어요. 친구를 초대해서 함께 플레이해보세요!
         </p>
         <div class="mt-8 flex justify-center">
-          <BaseButton variant="primary" size="lg" glow>
+          <Button variant="primary" size="lg" glow>
             스케치픽 시작하기
             <span aria-hidden="true">›</span>
-          </BaseButton>
+          </Button>
         </div>
       </div>
     </div>

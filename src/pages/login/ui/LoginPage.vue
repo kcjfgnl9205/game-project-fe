@@ -2,7 +2,7 @@
 import { ref } from 'vue'
 import { useAuthStore } from '@/shared/stores'
 import { useNavigation } from '@/shared/composables'
-import BaseButton from '@/shared/ui/BaseButton.vue'
+import { Button } from '@/shared/ui'
 
 const auth = useAuthStore()
 const nav = useNavigation()
@@ -48,9 +48,9 @@ async function onSubmit() {
 
       <p v-if="auth.error" class="text-sm text-red-500">{{ auth.error }}</p>
 
-      <BaseButton type="submit" :glow="true" class="w-full">
+      <Button type="submit" :glow="true" class="w-full">
         {{ submitting ? '로그인 중…' : '로그인' }}
-      </BaseButton>
+      </Button>
     </form>
   </div>
 </template>

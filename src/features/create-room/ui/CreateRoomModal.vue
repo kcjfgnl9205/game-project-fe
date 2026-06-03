@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
-import BaseButton from '@/shared/ui/BaseButton.vue'
+import { Button } from '@/shared/ui'
 import { useModalStore, useAuthStore } from '@/shared/stores'
 import { getGuestNickname, setGuestNickname } from '@/shared/lib/guest'
 import type { CreateRoomRequest } from '@/entities/room/model'
@@ -166,10 +166,8 @@ const onSubmit = () => {
 
     <!-- 액션: 모바일 세로 / 데스크탑 가로 2분할 -->
     <div class="mt-auto flex flex-col gap-3 pt-8 md:mt-8 md:grid md:grid-cols-2 md:pt-0">
-      <BaseButton variant="secondary" size="lg" type="button" @click="onCancel"> 취소 </BaseButton>
-      <BaseButton variant="primary" size="lg" type="submit" :disabled="!canSubmit">
-        만들기
-      </BaseButton>
+      <Button variant="secondary" size="lg" type="button" @click="onCancel"> 취소 </Button>
+      <Button variant="primary" size="lg" type="submit" :disabled="!canSubmit"> 만들기 </Button>
     </div>
   </form>
 </template>

@@ -1,15 +1,16 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
 import { RouterLink, useRoute } from 'vue-router'
-import BaseButton from '@/shared/ui/BaseButton.vue'
+import { Button, Input } from '@/shared/ui'
 import RoomCard from '@/entities/room/ui/RoomCard.vue'
 import { useModalStore, useAuthStore } from '@/shared/stores'
-import { useNavigation } from '@/shared/composables'
+import { useNavigation, useToast } from '@/shared/composables'
 import { games } from '@/shared/lib/games'
 import { getGuestNickname } from '@/shared/lib/guest'
 import { createRoom, fetchRooms, joinRoom } from '@/entities/room/api'
 import type { JoinRoomRequest, RoomListItem } from '@/entities/room/model'
 import { CreateRoomModal } from '@/features/create-room'
+import { PasswordPromptModal } from '@/shared/ui-modal'
 import type { CreateRoomRequest } from '@/entities/room/model'
 import { ApiError } from '@/shared/api'
 import { ROUTE_NAME } from '@/app/router/router-name'
@@ -18,11 +19,11 @@ const modal = useModalStore()
 const auth = useAuthStore()
 const route = useRoute()
 const nav = useNavigation()
+const toast = useToast()
 
 const search = ref('')
 const rooms = ref<RoomListItem[]>([])
 const loading = ref(true)
-const error = ref<string | null>(null)
 const joiningId = ref<string | null>(null)
 
 const game = computed(() => {
@@ -39,12 +40,11 @@ const filteredRooms = computed(() => {
 
 async function loadRooms() {
   loading.value = true
-  error.value = null
   try {
     const { items } = await fetchRooms()
     rooms.value = items
   } catch (e) {
-    error.value = e instanceof ApiError ? e.message : '방 목록을 불러오지 못했습니다.'
+    toast.error(e, '방 목록을 불러오지 못했습니다.')
   } finally {
     loading.value = false
   }
@@ -61,20 +61,41 @@ async function onCreateRoom() {
     const room = await createRoom(payload)
     await nav.toGameRoom(game.value.id, room.id)
   } catch (e) {
-    error.value = e instanceof ApiError ? e.message : '방을 만들지 못했습니다.'
+    toast.error(e, '방을 만들지 못했습니다.')
   }
 }
 
 async function enterRoom(room: RoomListItem) {
   if (!game.value) return
+
+  // 비공개 방: 비밀번호 모달은 입력 UI만 담당하고, 입장 로직은 여기서 주입한다.
+  // 틀리면(throw) 모달이 유지되며 메시지를 띄우고, 성공하면 모달이 닫히고 true 반환.
+  if (room.isPrivate) {
+    const entered = await modal.open<boolean>(PasswordPromptModal, {
+      description: `'${room.name}' 방은 비공개입니다.`,
+      submitText: '입장',
+      onSubmit: async (password: string) => {
+        try {
+          await joinRoom(room.id, {
+            password,
+            nickname: auth.isAuthenticated ? undefined : getGuestNickname(),
+          })
+        } catch (e) {
+          if (e instanceof ApiError && e.status === 409) return // 이미 참가 중 → 성공 취급
+          if (e instanceof ApiError && e.status === 401)
+            throw new Error('비밀번호가 올바르지 않습니다.')
+          throw new Error(e instanceof ApiError ? e.message : '입장하지 못했습니다.')
+        }
+      },
+    })
+    if (entered) await nav.toGameRoom(game.value.id, room.id)
+    return
+  }
+
+  // 공개 방: 바로 입장
   joiningId.value = room.id
   try {
     const body: JoinRoomRequest = {}
-    if (room.isPrivate) {
-      const password = window.prompt('비밀번호를 입력하세요')
-      if (password === null) return // 취소
-      body.password = password
-    }
     if (!auth.isAuthenticated) body.nickname = getGuestNickname()
 
     await joinRoom(room.id, body)
@@ -85,7 +106,7 @@ async function enterRoom(room: RoomListItem) {
       await nav.toGameRoom(game.value.id, room.id)
       return
     }
-    error.value = e instanceof ApiError ? e.message : '방에 입장하지 못했습니다.'
+    toast.error(e, '방에 입장하지 못했습니다.')
   } finally {
     joiningId.value = null
   }
@@ -122,32 +143,21 @@ onMounted(loadRooms)
         >
           <span aria-hidden="true">🔄</span>
         </button>
-        <BaseButton variant="primary" size="md" glow @click="onCreateRoom">
+        <Button variant="primary" size="md" glow @click="onCreateRoom">
           <span aria-hidden="true">+</span>
           방 만들기
-        </BaseButton>
+        </Button>
       </div>
     </header>
 
     <div class="mb-6 flex flex-wrap items-center gap-4">
-      <div class="relative min-w-0 flex-1">
-        <span
-          class="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-text-muted"
-          aria-hidden="true"
-        >
-          🔍
-        </span>
-        <input
-          v-model="search"
-          type="text"
-          placeholder="방 이름으로 검색..."
-          class="h-12 w-full rounded-xl border border-border bg-bg-card pr-4 pl-11 text-sm text-text-primary transition-colors placeholder:text-text-muted focus:border-brand focus:outline-none"
-        />
+      <div class="min-w-0 flex-1">
+        <Input v-model="search" type="text" placeholder="방 이름으로 검색..." icon="search" />
       </div>
-      <span class="shrink-0 text-sm text-text-secondary"> 총 {{ filteredRooms.length }}개의 방 </span>
+      <span class="shrink-0 text-sm text-text-secondary">
+        총 {{ filteredRooms.length }}개의 방
+      </span>
     </div>
-
-    <p v-if="error" class="mb-4 text-sm text-red-500">{{ error }}</p>
 
     <p v-if="loading" class="py-20 text-center text-sm text-text-muted">불러오는 중…</p>
 

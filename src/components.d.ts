@@ -11,6 +11,12 @@ export {}
 /* prettier-ignore */
 declare module 'vue' {
   export interface GlobalComponents {
+    ILocalLock: typeof import('~icons/local/lock')['default']
+    'ILocalLock.': typeof import('~icons/local/lock.')['default']
+    ILocalPeople: typeof import('~icons/local/people')['default']
+    ILocalTimer: typeof import('~icons/local/timer')['default']
+    ILocalUnlock: typeof import('~icons/local/unlock')['default']
+    ILocalUnLock: typeof import('~icons/local/un-lock')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
   }

@@ -18,7 +18,7 @@ import { Button } from '@/shared/ui'
           회원가입 없이도 게임을 즐길 수 있어요. 친구를 초대해서 함께 플레이해보세요!
         </p>
         <div class="mt-8 flex justify-center">
-          <Button variant="primary" size="lg" glow>
+          <Button variant="primary" size="lg">
             스케치픽 시작하기
             <span aria-hidden="true">›</span>
           </Button>

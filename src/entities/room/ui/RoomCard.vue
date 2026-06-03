@@ -3,15 +3,11 @@ import { computed } from 'vue'
 import { Badge } from '@/shared/ui'
 import type { RoomListItem } from '@/entities/room/model'
 
-const props = defineProps<{ room: RoomListItem }>()
+interface Props {
+  room: RoomListItem
+}
 
-const MAX_VISIBLE_AVATARS = 4
-
-const visibleSlots = computed(() =>
-  Array.from({ length: Math.min(props.room.currentPlayers, MAX_VISIBLE_AVATARS) }, (_, i) => i + 1),
-)
-
-const overflow = computed(() => Math.max(0, props.room.currentPlayers - MAX_VISIBLE_AVATARS))
+const props = defineProps<Props>()
 
 const isFull = computed(() => props.room.currentPlayers >= props.room.maxPlayers)
 </script>
@@ -23,7 +19,8 @@ const isFull = computed(() => props.room.currentPlayers >= props.room.maxPlayers
     <header class="mb-4 flex items-start justify-between gap-3">
       <div class="flex min-w-0 items-center gap-2">
         <span :class="room.isPrivate ? 'text-warning' : 'text-text-muted'" aria-hidden="true">
-          {{ room.isPrivate ? '🔒' : '🔓' }}
+          <i-local-lock v-if="room.isPrivate" />
+          <i-local-unLock v-else />
         </span>
         <h3 class="truncate text-base font-bold text-text-primary">
           {{ room.name }}
@@ -34,35 +31,21 @@ const isFull = computed(() => props.room.currentPlayers >= props.room.maxPlayers
       </Badge>
     </header>
 
+    <!-- 그리는 시간 -->
     <div class="flex items-center gap-2 text-sm text-text-secondary">
-      <span aria-hidden="true">⏱</span>
-      {{ room.drawTimeSec }}초 그리기
+      <i-local-timer aria-hidden="true" class="text-text-muted" />
+      <span>{{ room.drawTimeSec }}초</span>
     </div>
 
-    <footer class="mt-6 flex items-center justify-between border-t border-border pt-4">
+    <!-- 참가인원 -->
+    <footer class="mt-4 flex items-center justify-between border-t border-border pt-4">
       <span class="inline-flex items-center gap-1.5 text-sm">
-        <span aria-hidden="true" class="text-text-muted">👥</span>
+        <i-local-people aria-hidden="true" class="text-text-muted" />
         <span :class="isFull ? 'text-warning' : 'text-brand'" class="font-semibold">
           {{ room.currentPlayers }}
         </span>
         <span class="text-text-muted">/ {{ room.maxPlayers }}명</span>
       </span>
-
-      <div class="flex -space-x-1.5">
-        <span
-          v-for="n in visibleSlots"
-          :key="n"
-          class="flex h-6 w-6 items-center justify-center rounded-full border border-border bg-bg-elevated text-[10px] font-semibold text-text-secondary"
-        >
-          {{ n }}
-        </span>
-        <span
-          v-if="overflow > 0"
-          class="flex h-6 w-6 items-center justify-center rounded-full bg-brand text-[10px] font-bold text-on-brand"
-        >
-          +{{ overflow }}
-        </span>
-      </div>
     </footer>
   </article>
 </template>

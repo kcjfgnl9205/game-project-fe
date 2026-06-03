@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
-import { Button } from '@/shared/ui'
+import { Button, Input } from '@/shared/ui'
 import { useModalStore, useAuthStore } from '@/shared/stores'
 import { getGuestNickname, setGuestNickname } from '@/shared/lib/guest'
 import type { CreateRoomRequest } from '@/entities/room/model'
@@ -69,34 +69,26 @@ const onSubmit = () => {
 
     <!-- 방 이름 -->
     <div class="mt-8">
-      <label for="create-room-name" class="block text-sm font-semibold text-text-primary">
-        방 이름
-      </label>
-      <input
-        id="create-room-name"
+      <Input
         v-model="name"
+        label="방 이름"
         type="text"
         placeholder="방 이름을 입력하세요"
         maxlength="50"
         autocomplete="off"
         autofocus
-        class="mt-3 h-12 w-full rounded-xl border border-border bg-bg-elevated px-4 text-sm text-text-primary transition-colors placeholder:text-text-muted focus:border-brand focus:outline-none"
       />
     </div>
 
     <!-- 게스트 닉네임 -->
     <div v-if="isGuest" class="mt-5">
-      <label for="create-room-nickname" class="block text-sm font-semibold text-text-primary">
-        닉네임
-      </label>
-      <input
-        id="create-room-nickname"
+      <Input
         v-model="nickname"
+        label="닉네임"
         type="text"
         placeholder="표시할 닉네임"
         maxlength="30"
         autocomplete="off"
-        class="mt-3 h-12 w-full rounded-xl border border-border bg-bg-elevated px-4 text-sm text-text-primary transition-colors placeholder:text-text-muted focus:border-brand focus:outline-none"
       />
     </div>
 
@@ -131,13 +123,7 @@ const onSubmit = () => {
     <!-- 비밀 방 토글 -->
     <div class="mt-5 rounded-xl border border-border bg-bg-elevated p-4">
       <label class="flex cursor-pointer items-center gap-4" :class="{ 'mb-3': isPrivate }">
-        <span
-          class="text-2xl"
-          :class="isPrivate ? 'text-warning' : 'text-text-muted'"
-          aria-hidden="true"
-        >
-          🔒
-        </span>
+        <i-local-lock />
         <div class="flex-1">
           <p class="text-sm font-semibold text-text-primary">비밀 방</p>
           <p class="mt-0.5 text-xs text-text-secondary">비밀번호를 설정합니다</p>
@@ -153,14 +139,13 @@ const onSubmit = () => {
         </span>
       </label>
 
-      <input
+      <Input
         v-if="isPrivate"
         v-model="password"
         type="password"
         placeholder="비밀번호를 입력하세요"
         maxlength="20"
         autocomplete="new-password"
-        class="h-11 w-full rounded-lg border border-border bg-bg-card px-4 text-sm text-text-primary transition-colors placeholder:text-text-muted focus:border-brand focus:outline-none"
       />
     </div>
 

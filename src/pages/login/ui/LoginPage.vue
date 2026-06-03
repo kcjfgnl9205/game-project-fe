@@ -48,7 +48,7 @@ async function onSubmit() {
 
       <p v-if="auth.error" class="text-sm text-red-500">{{ auth.error }}</p>
 
-      <Button type="submit" :glow="true" class="w-full">
+      <Button type="submit" class="w-full">
         {{ submitting ? '로그인 중…' : '로그인' }}
       </Button>
     </form>

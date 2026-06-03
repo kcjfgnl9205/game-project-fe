@@ -1,17 +1,16 @@
-import { http } from '@/shared/api'
+import { http, type PaginationParams, type PaginatedResponse } from '@/shared/api'
 import type {
   CreateRoomRequest,
   JoinRoomRequest,
   Room,
-  RoomListParams,
-  RoomListResponse,
+  RoomListItem,
   UpdateRoomRequest,
 } from './model'
 
 // 회원/게스트 식별자는 http 인터셉터가 헤더로 자동 부착한다(§0). nickname만 body로 넘긴다.
 
-export const fetchRooms = async (params: RoomListParams = {}) => {
-  const { data } = await http.get<RoomListResponse>('/rooms', { params })
+export const fetchRooms = async (params: PaginationParams = {}) => {
+  const { data } = await http.get<PaginatedResponse<RoomListItem>>('/rooms', { params })
   return data
 }
 

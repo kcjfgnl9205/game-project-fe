@@ -28,7 +28,7 @@ const stats = [
       </p>
 
       <div class="mt-10 flex flex-wrap items-center justify-center gap-4">
-        <Button variant="primary" size="lg" glow>
+        <Button variant="primary" size="lg">
           지금 시작하기
           <span aria-hidden="true">›</span>
         </Button>

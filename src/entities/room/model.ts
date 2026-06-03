@@ -26,16 +26,6 @@ export interface Room extends RoomListItem {
   participants: RoomParticipant[]
 }
 
-export interface RoomListParams {
-  page?: number
-  limit?: number
-}
-
-export interface RoomListResponse {
-  total: number
-  items: RoomListItem[]
-}
-
 export interface CreateRoomRequest {
   name: string
   maxPlayers?: number

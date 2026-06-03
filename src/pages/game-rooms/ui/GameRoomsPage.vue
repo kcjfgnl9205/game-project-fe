@@ -1,10 +1,10 @@
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
 import { RouterLink, useRoute } from 'vue-router'
-import { Button, Input } from '@/shared/ui'
+import { Button, Input, Pagination } from '@/shared/ui'
 import RoomCard from '@/entities/room/ui/RoomCard.vue'
 import { useModalStore, useAuthStore } from '@/shared/stores'
-import { useNavigation, useToast } from '@/shared/composables'
+import { useNavigation, useToast, usePagination } from '@/shared/composables'
 import { games } from '@/shared/lib/games'
 import { getGuestNickname } from '@/shared/lib/guest'
 import { createRoom, fetchRooms, joinRoom } from '@/entities/room/api'
@@ -26,29 +26,55 @@ const rooms = ref<RoomListItem[]>([])
 const loading = ref(true)
 const joiningId = ref<string | null>(null)
 
+const {
+  page,
+  limit,
+  total,
+  pages,
+  hasPrevGroup,
+  hasNextGroup,
+  showPagination,
+  setPage,
+  prevGroup,
+  nextGroup,
+} = usePagination({ limit: 9 })
+
 const game = computed(() => {
   const id = route.params.gameId
   if (typeof id !== 'string') return undefined
   return games.find((g) => g.id === id)
 })
 
-const filteredRooms = computed(() => {
-  const term = search.value.trim().toLowerCase()
-  if (!term) return rooms.value
-  return rooms.value.filter((room) => room.name.toLowerCase().includes(term))
+// 검색어 디바운스: 입력이 멈춘 뒤 300ms에 서버 재검색하고 1페이지로 되돌린다.
+const debouncedQ = ref('')
+let searchTimer: ReturnType<typeof setTimeout> | null = null
+watch(search, (v) => {
+  if (searchTimer) clearTimeout(searchTimer)
+  searchTimer = setTimeout(() => {
+    debouncedQ.value = v.trim()
+    setPage(1)
+  }, 300)
 })
 
 async function loadRooms() {
   loading.value = true
   try {
-    const { items } = await fetchRooms()
+    const { items, total: t } = await fetchRooms({
+      page: page.value,
+      limit,
+      q: debouncedQ.value || undefined,
+    })
     rooms.value = items
+    total.value = t
   } catch (e) {
     toast.error(e, '방 목록을 불러오지 못했습니다.')
   } finally {
     loading.value = false
   }
 }
+
+// 페이지 또는 검색어가 바뀌면 재조회 (같은 틱 변경은 한 번만 호출됨)
+watch([page, debouncedQ], loadRooms)
 
 async function onCreateRoom() {
   if (!game.value) return
@@ -117,60 +143,34 @@ onMounted(loadRooms)
 
 <template>
   <section v-if="game" class="mx-auto max-w-7xl px-6 py-12">
-    <header class="mb-8 flex flex-wrap items-start justify-between gap-4">
-      <div class="flex items-center gap-4">
-        <span
-          class="flex h-16 w-16 items-center justify-center rounded-2xl border border-border bg-bg-card text-3xl"
-          aria-hidden="true"
-        >
-          {{ game.icon }}
-        </span>
-        <div>
-          <h1 class="text-3xl font-bold text-text-primary">{{ game.name }}</h1>
-          <p class="mt-1 text-sm text-text-secondary">
-            {{ game.description }} ({{ game.minPlayers }}-{{ game.maxPlayers }}명)
-          </p>
-        </div>
+    <header class="mb-8 flex flex-wrap items-center justify-between gap-4">
+      <div class="flex flex-col gap-1">
+        <h1 class="text-3xl font-bold text-text-primary">{{ game.name }}</h1>
+        <p class="text-sm text-text-secondary">
+          {{ game.description }} ({{ game.minPlayers }}-{{ game.maxPlayers }}명)
+        </p>
       </div>
 
-      <div class="flex items-center gap-3">
-        <button
-          type="button"
-          aria-label="새로고침"
-          :disabled="loading"
-          class="inline-flex h-11 w-11 cursor-pointer items-center justify-center rounded-full border border-border text-text-secondary transition-colors hover:bg-bg-card hover:text-text-primary disabled:opacity-50"
-          @click="loadRooms"
-        >
-          <span aria-hidden="true">🔄</span>
-        </button>
-        <Button variant="primary" size="md" glow @click="onCreateRoom">
-          <span aria-hidden="true">+</span>
-          방 만들기
-        </Button>
-      </div>
+      <Button variant="primary" size="md" @click="onCreateRoom" icon="plus"> 방 만들기 </Button>
     </header>
 
-    <div class="mb-6 flex flex-wrap items-center gap-4">
-      <div class="min-w-0 flex-1">
-        <Input v-model="search" type="text" placeholder="방 이름으로 검색..." icon="search" />
-      </div>
-      <span class="shrink-0 text-sm text-text-secondary">
-        총 {{ filteredRooms.length }}개의 방
-      </span>
+    <div class="w-full mb-4">
+      <Input v-model="search" type="text" placeholder="방 이름으로 검색..." icon="search" />
+    </div>
+
+    <div class="flex gap-2 items-center mb-4 ml-2">
+      <div class="text-sm text-text-secondary">총 {{ total }}개의 방</div>
+      <Button variant="outline" size="sm" @click="loadRooms" icon="refresh">새로고침</Button>
     </div>
 
     <p v-if="loading" class="py-20 text-center text-sm text-text-muted">불러오는 중…</p>
-
-    <div
-      v-else-if="filteredRooms.length > 0"
-      class="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3"
-    >
+    <div v-else-if="rooms.length > 0" class="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
       <button
-        v-for="room in filteredRooms"
+        v-for="room in rooms"
         :key="room.id"
         type="button"
         :disabled="joiningId === room.id"
-        class="block w-full cursor-pointer text-left disabled:opacity-60"
+        class="block w-full cursor-pointer disabled:opacity-60"
         @click="enterRoom(room)"
       >
         <RoomCard :room="room" />
@@ -179,9 +179,21 @@ onMounted(loadRooms)
 
     <div v-else class="rounded-2xl border border-dashed border-border py-20 text-center">
       <p class="text-sm text-text-secondary">
-        {{ search ? '검색 결과가 없습니다' : '아직 만들어진 방이 없어요' }}
+        {{ debouncedQ ? '검색 결과가 없습니다' : '아직 만들어진 방이 없어요' }}
       </p>
     </div>
+
+    <Pagination
+      v-if="showPagination"
+      class="mt-8"
+      :page="page"
+      :pages="pages"
+      :has-prev-group="hasPrevGroup"
+      :has-next-group="hasNextGroup"
+      @update:page="setPage"
+      @prev-group="prevGroup"
+      @next-group="nextGroup"
+    />
   </section>
 
   <section v-else class="mx-auto max-w-3xl px-6 py-20 text-center">

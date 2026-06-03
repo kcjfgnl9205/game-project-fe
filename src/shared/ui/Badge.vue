@@ -17,7 +17,7 @@ const toneClass = computed(() => {
 <template>
   <span
     :class="[
-      'inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold',
+      'inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold shrink-0',
       toneClass,
     ]"
   >

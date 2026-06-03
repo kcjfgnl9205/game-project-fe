@@ -10,12 +10,3 @@ export interface Notice {
   updatedAt: string
 }
 
-export interface NoticeListParams {
-  page?: number
-  size?: number
-}
-
-export interface NoticeListResponse {
-  total: number
-  items: Notice[]
-}

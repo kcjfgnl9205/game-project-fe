@@ -64,7 +64,8 @@ interface SocketAuth {
 let socket: Socket | null = null
 let chatSeq = 0
 // 원격 그리기 이벤트를 캔버스 컴포넌트로 전달하는 콜백 (연속 스트림이라 ref보다 콜백이 적합)
-let remoteStrokeCb: ((s: Stroke) => void) | null = null
+// stroke는 한 프레임 분량을 배열(batch)로 묶어 주고받는다.
+let remoteStrokeCb: ((s: Stroke[]) => void) | null = null
 let remoteClearCb: (() => void) | null = null
 
 export const useGameStore = defineStore('sketch-pick-game', () => {
@@ -230,7 +231,10 @@ export const useGameStore = defineStore('sketch-pick-game', () => {
     socket.on(
       'guess:correct',
       (payload: { playerId: string; nickname: string; scoreDelta: number }) => {
-        // 정답 안내는 chat:system으로 채팅에 남는다. (점수는 lobby:state로 갱신)
+        // 정답 즉시 점수 반영(실시간). 정확한 합계는 turn:reveal에서 다시 동기화된다.
+        players.value = players.value.map((p) =>
+          p.playerId === payload.playerId ? { ...p, score: p.score + payload.scoreDelta } : p,
+        )
         console.debug('[sketch-pick] guess:correct', payload)
       },
     )
@@ -241,14 +245,16 @@ export const useGameStore = defineStore('sketch-pick-game', () => {
         word: string | null
         reason: string
         turnScores: Record<string, number>
-        sessionScores: Record<string, number>
+        sessionScores: { playerId: string; nickname: string; score: number }[]
       }) => {
         status.value = 'REVEAL'
         turnEndsAt.value = null
-        // 진행 중에는 lobby:state가 없으므로 점수판을 여기서 갱신한다.
+        // 진행 중에는 lobby:state가 없으므로 점수판을 여기서 정확히 동기화한다.
+        // (서버 sessionScores는 배열이므로 Map으로 변환해 매칭)
+        const scoreMap = new Map(payload.sessionScores.map((s) => [s.playerId, s.score]))
         players.value = players.value.map((p) => ({
           ...p,
-          score: payload.sessionScores[p.playerId] ?? p.score,
+          score: scoreMap.get(p.playerId) ?? p.score,
         }))
         // 정답 공개 안내는 서버가 chat:system으로 채팅에 남긴다.
         clearWord()
@@ -269,8 +275,8 @@ export const useGameStore = defineStore('sketch-pick-game', () => {
       error.value = e.message ?? '오류가 발생했습니다.'
     })
 
-    // 다른 사람(출제자)의 그리기 → 캔버스에 반영
-    socket.on('draw:stroke', (s: Stroke) => remoteStrokeCb?.(s))
+    // 다른 사람(출제자)의 그리기 → 캔버스에 반영 (한 프레임 분량 배열)
+    socket.on('draw:stroke', (strokes: Stroke[]) => remoteStrokeCb?.(strokes))
     socket.on('draw:clear', () => remoteClearCb?.())
   }
 
@@ -288,15 +294,15 @@ export const useGameStore = defineStore('sketch-pick-game', () => {
     socket?.emit('word:pick', { word: picked })
   }
 
-  // 그리기 relay (출제자만 서버가 받아 다른 사람에게 broadcast)
-  function sendStroke(stroke: Stroke) {
-    socket?.emit('draw:stroke', stroke)
+  // 그리기 relay (출제자만 서버가 받아 다른 사람에게 broadcast). 한 프레임 분량을 묶어 보낸다.
+  function sendStroke(strokes: Stroke[]) {
+    if (strokes.length) socket?.emit('draw:stroke', strokes)
   }
   function sendClear() {
     socket?.emit('draw:clear')
   }
   // 캔버스 컴포넌트가 원격 그리기 수신 핸들러를 등록/해제
-  function onRemoteStroke(cb: ((s: Stroke) => void) | null) {
+  function onRemoteStroke(cb: ((s: Stroke[]) => void) | null) {
     remoteStrokeCb = cb
   }
   function onRemoteClear(cb: (() => void) | null) {

@@ -17,6 +17,9 @@ let ro: ResizeObserver | null = null
 const isDrawer = computed(
   () => !!game.currentDrawerKey && game.currentDrawerKey === props.myPlayerId,
 )
+const drawerName = computed(
+  () => game.players.find((p) => p.playerId === game.currentDrawerKey)?.nickname ?? '',
+)
 const now = ref(Date.now())
 let timer: ReturnType<typeof setInterval> | null = null
 const seconds = computed(() => {
@@ -48,6 +51,21 @@ function drawSeg(s: Stroke) {
 }
 function clearCanvas() {
   ctx?.clearRect(0, 0, CANVAS_RES, CANVAS_RES)
+}
+
+// 전송 최적화: pointermove마다 보내지 않고 버퍼에 모아 프레임당 1회(batch) 전송
+let strokeBuffer: Stroke[] = []
+let flushRaf = 0
+function flushStrokes() {
+  flushRaf = 0
+  if (strokeBuffer.length) {
+    game.sendStroke(strokeBuffer)
+    strokeBuffer = []
+  }
+}
+function scheduleFlush() {
+  if (flushRaf) return
+  flushRaf = requestAnimationFrame(flushStrokes)
 }
 
 let drawing = false
@@ -90,12 +108,14 @@ function pointerMove(e: PointerEvent) {
     size,
   }
   drawSeg(seg) // 본인 화면 즉시 반영
-  game.sendStroke(seg) // 다른 사람에게 broadcast
+  strokeBuffer.push(seg) // 전송은 프레임당 묶어서 (throttle + batch)
+  scheduleFlush()
   lastX = p.x
   lastY = p.y
 }
 function pointerUp() {
   drawing = false
+  flushStrokes() // 드래그 끝: 남은 점 즉시 전송
 }
 
 // 전체 지우기 (출제자만)
@@ -125,12 +145,13 @@ onMounted(() => {
 
   // 캔버스 컨텍스트 + 원격 그리기 수신 등록
   ctx = canvasEl.value?.getContext('2d') ?? null
-  game.onRemoteStroke(drawSeg)
+  game.onRemoteStroke((strokes) => strokes.forEach(drawSeg))
   game.onRemoteClear(clearCanvas)
 })
 onBeforeUnmount(() => {
   ro?.disconnect()
   if (timer) clearInterval(timer)
+  if (flushRaf) cancelAnimationFrame(flushRaf)
   game.onRemoteStroke(null)
   game.onRemoteClear(null)
 })
@@ -174,6 +195,7 @@ function pointerEnter() {
 function pointerLeave() {
   showCursor.value = false
   drawing = false
+  flushStrokes()
 }
 </script>
 
@@ -189,14 +211,20 @@ function pointerLeave() {
         <div
           class="flex h-12 shrink-0 items-center justify-between rounded-lg border border-border bg-bg-card px-4"
         >
-          <span class="min-w-0 truncate text-sm text-text-secondary font-bold">
+          <span
+            class="flex min-w-0 items-center gap-3 truncate text-sm font-bold text-text-secondary"
+          >
             <template v-if="game.status === 'DRAWING'">
-              제시어:
-              <span class="ml-1 font-bold tracking-widest text-brand text-lg">
-                {{ promptText }}
+              <span class="truncate flex items-center">
+                <span>제시어:</span>
+                <span class="ml-1 text-lg tracking-widest text-brand">{{ promptText }}</span>
               </span>
+              <span class="shrink-0 text-text-muted">출제자: {{ drawerName }}</span>
             </template>
-            <template v-else-if="game.status === 'WORD_SELECT'">단어 선택 중…</template>
+            <template v-else-if="game.status === 'WORD_SELECT'">
+              <span class="truncate"> 단어 선택 중… </span>
+              <span class="shrink-0 text-text-muted">출제자: {{ drawerName }}</span>
+            </template>
           </span>
           <span v-if="game.turnEndsAt" class="inline-flex shrink-0 items-center gap-1">
             <i-local-timer aria-hidden="true" />

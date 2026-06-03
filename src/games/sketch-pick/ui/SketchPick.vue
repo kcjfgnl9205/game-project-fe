@@ -5,6 +5,8 @@ import SketchPickHeader from './SketchPickHeader.vue'
 import SketchPickParticipants from './SketchPickParticipants.vue'
 import SketchPickCanvas from './SketchPickCanvas.vue'
 import SketchPickChat from './SketchPickChat.vue'
+import { Button } from '@/shared/ui'
+import { ModalShell } from '@/shared/ui-modal'
 import { useGameStore, type Participant } from '@/games/sketch-pick/model/game.store'
 import { fetchRoom, leaveRoom } from '@/entities/room/api'
 import type { Room } from '@/entities/room/model'
@@ -49,13 +51,6 @@ const participants = computed<Participant[]>(() =>
     })),
 )
 
-const now = ref(Date.now())
-const seconds = computed(() => {
-  if (!game.turnEndsAt) return 0
-  return Math.max(0, Math.ceil((game.turnEndsAt - now.value) / 1000))
-})
-let timer: ReturnType<typeof setInterval> | null = null
-
 function handlePageUnload() {
   if (hasLeft.value) return
   hasLeft.value = true
@@ -93,10 +88,6 @@ onMounted(async () => {
 
   window.addEventListener('beforeunload', handlePageUnload)
   window.addEventListener('pagehide', handlePageUnload)
-
-  timer = setInterval(() => {
-    now.value = Date.now()
-  }, 1000)
 })
 
 // 화면 이탈 / 라우트 이동 시 명시적 REST leave + 소켓 disconnect.
@@ -105,7 +96,6 @@ onBeforeRouteLeave(async () => {
 })
 
 onUnmounted(() => {
-  if (timer) clearInterval(timer)
   window.removeEventListener('beforeunload', handlePageUnload)
   window.removeEventListener('pagehide', handlePageUnload)
   if (!hasLeft.value) {
@@ -115,68 +105,64 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <div class="flex h-dvh flex-col">
+  <div class="flex h-dvh flex-col" v-if="room">
+    <!-- 헤더 -->
     <SketchPickHeader
       game-name="스케치픽"
-      game-icon="🎨"
+      :room-name="room.name"
       :current-players="participants.length"
-      :max-players="room?.maxPlayers ?? 8"
-      :seconds="seconds"
+      :max-players="room.maxPlayers"
     />
 
-    <div class="flex flex-1 overflow-hidden">
+    <div class="flex min-h-0 flex-1 overflow-hidden">
       <SketchPickParticipants :participants="participants" />
 
-      <div class="flex-1 flex flex-col">
-        <div
-          v-if="game.error"
-          class="mb-3 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700"
-        >
-          {{ game.error }}
-        </div>
-        <div
-          v-if="game.announcement"
-          class="mb-3 rounded-2xl border border-brand-soft bg-brand-soft px-4 py-3 text-sm font-semibold text-brand"
-        >
-          {{ game.announcement }}
-        </div>
+      <!-- 그림 영역 -->
+      <div class="flex min-h-0 min-w-0 flex-1 flex-col">
+        <SketchPickCanvas :my-player-id="myPlayerId">
+          <template #overlay>
+            <!-- 안내(에러/공지): 캔버스 상단 가운데 -->
+            <div
+              v-if="game.error || game.announcement"
+              class="pointer-events-none absolute inset-x-0 top-3 flex justify-center px-3"
+            >
+              <div
+                class="rounded-xl border px-4 py-2 text-sm font-semibold shadow-sm"
+                :class="
+                  game.error
+                    ? 'border-red-200 bg-red-50 text-red-700'
+                    : 'border-brand bg-brand-soft text-brand'
+                "
+              >
+                {{ game.error || game.announcement }}
+              </div>
+            </div>
 
-        <!-- 제시어 바: 출제자는 단어, 나머지는 글자 수(○)만 -->
-        <div
-          v-if="game.status === 'DRAWING' && (game.word || game.wordLength)"
-          class="mb-3 rounded-2xl border border-brand bg-brand-soft px-4 py-3 text-center"
-        >
-          <span class="text-sm text-gray-500">제시어: </span>
-          <span class="ml-1 text-lg font-bold tracking-widest text-brand">{{
-            isMyTurn ? game.word : '○'.repeat(game.wordLength)
-          }}</span>
-        </div>
-
-        <SketchPickCanvas />
+            <!-- 단어 선택 모달: 출제자에게만, 캔버스 가운데 -->
+            <ModalShell
+              contained
+              :open="game.status === 'WORD_SELECT' && isMyTurn && game.wordChoices.length > 0"
+            >
+              <h3 class="mb-1 text-center text-lg font-bold text-text-primary">
+                그릴 단어를 선택하세요
+              </h3>
+              <p class="mb-4 text-center text-xs text-text-muted">선택하면 바로 시작됩니다</p>
+              <div class="flex flex-col gap-2">
+                <Button
+                  v-for="w in game.wordChoices"
+                  :key="w"
+                  variant="outline"
+                  size="lg"
+                  @click="game.pickWord(w)"
+                >
+                  {{ w }}
+                </Button>
+              </div>
+            </ModalShell>
+          </template>
+        </SketchPickCanvas>
       </div>
       <SketchPickChat />
-    </div>
-
-    <!-- 단어 선택 모달: 출제자에게만. 선택하면 즉시 그리기 시작 -->
-    <div
-      v-if="game.status === 'WORD_SELECT' && isMyTurn && game.wordChoices.length"
-      class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
-    >
-      <div class="w-full max-w-sm rounded-2xl bg-white p-6 shadow-xl">
-        <h3 class="mb-1 text-center text-lg font-bold text-gray-800">그릴 단어를 선택하세요</h3>
-        <p class="mb-4 text-center text-xs text-gray-400">선택하면 바로 시작됩니다</p>
-        <div class="flex flex-col gap-2">
-          <button
-            v-for="w in game.wordChoices"
-            :key="w"
-            type="button"
-            class="rounded-xl border border-brand bg-brand-soft px-4 py-3 text-base font-semibold text-brand hover:bg-brand hover:text-white"
-            @click="game.pickWord(w)"
-          >
-            {{ w }}
-          </button>
-        </div>
-      </div>
     </div>
   </div>
 </template>

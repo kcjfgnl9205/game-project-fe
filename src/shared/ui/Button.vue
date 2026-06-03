@@ -23,7 +23,7 @@ const variantClass = computed(() => {
     return 'bg-bg-card text-text-primary border border-border-strong hover:bg-bg-card-hover'
   if (props.variant === 'outline')
     return 'bg-transparent text-brand border border-brand hover:bg-brand-soft'
-  return 'bg-transparent text-text-primary hover:bg-bg-card'
+  return 'bg-transparent text-text-secondary hover:bg-bg-card-hover hover:text-text-primary'
 })
 
 const sizeClass = computed(() => {

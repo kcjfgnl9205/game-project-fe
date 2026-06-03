@@ -35,6 +35,16 @@ export interface ChatLine {
   text: string
 }
 
+// 그리기 선분 한 조각. 좌표/두께는 해상도 독립을 위해 고정 기준(0~CANVAS_RES)으로 주고받는다.
+export interface Stroke {
+  x0: number
+  y0: number
+  x1: number
+  y1: number
+  color: string
+  size: number
+}
+
 interface LobbyState {
   status: GamePhase
   hostKey: string
@@ -53,6 +63,9 @@ interface SocketAuth {
 // socket은 반응형일 필요가 없어 모듈 스코프에 둔다.
 let socket: Socket | null = null
 let chatSeq = 0
+// 원격 그리기 이벤트를 캔버스 컴포넌트로 전달하는 콜백 (연속 스트림이라 ref보다 콜백이 적합)
+let remoteStrokeCb: ((s: Stroke) => void) | null = null
+let remoteClearCb: (() => void) | null = null
 
 export const useGameStore = defineStore('sketch-pick-game', () => {
   const status = ref<GamePhase>('LOBBY')
@@ -255,6 +268,10 @@ export const useGameStore = defineStore('sketch-pick-game', () => {
     socket.on('error', (e: { code?: string; message?: string }) => {
       error.value = e.message ?? '오류가 발생했습니다.'
     })
+
+    // 다른 사람(출제자)의 그리기 → 캔버스에 반영
+    socket.on('draw:stroke', (s: Stroke) => remoteStrokeCb?.(s))
+    socket.on('draw:clear', () => remoteClearCb?.())
   }
 
   function sendChat(text: string) {
@@ -271,9 +288,26 @@ export const useGameStore = defineStore('sketch-pick-game', () => {
     socket?.emit('word:pick', { word: picked })
   }
 
+  // 그리기 relay (출제자만 서버가 받아 다른 사람에게 broadcast)
+  function sendStroke(stroke: Stroke) {
+    socket?.emit('draw:stroke', stroke)
+  }
+  function sendClear() {
+    socket?.emit('draw:clear')
+  }
+  // 캔버스 컴포넌트가 원격 그리기 수신 핸들러를 등록/해제
+  function onRemoteStroke(cb: ((s: Stroke) => void) | null) {
+    remoteStrokeCb = cb
+  }
+  function onRemoteClear(cb: (() => void) | null) {
+    remoteClearCb = cb
+  }
+
   function disconnect() {
     socket?.close()
     socket = null
+    remoteStrokeCb = null
+    remoteClearCb = null
     reset()
   }
 
@@ -294,6 +328,10 @@ export const useGameStore = defineStore('sketch-pick-game', () => {
     sendChat,
     startGame,
     pickWord,
+    sendStroke,
+    sendClear,
+    onRemoteStroke,
+    onRemoteClear,
     disconnect,
   }
 })

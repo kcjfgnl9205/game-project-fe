@@ -1,15 +1,12 @@
 <script setup lang="ts">
-import { computed } from 'vue'
-import { Badge } from '@/shared/ui'
+import { Badge, PlayerCount } from '@/shared/ui'
 import type { RoomListItem } from '@/entities/room/model'
 
 interface Props {
   room: RoomListItem
 }
 
-const props = defineProps<Props>()
-
-const isFull = computed(() => props.room.currentPlayers >= props.room.maxPlayers)
+defineProps<Props>()
 </script>
 
 <template>
@@ -39,13 +36,7 @@ const isFull = computed(() => props.room.currentPlayers >= props.room.maxPlayers
 
     <!-- 참가인원 -->
     <footer class="mt-4 flex items-center justify-between border-t border-border pt-4">
-      <span class="inline-flex items-center gap-1.5 text-sm">
-        <i-local-people aria-hidden="true" class="text-text-muted" />
-        <span :class="isFull ? 'text-warning' : 'text-brand'" class="font-semibold">
-          {{ room.currentPlayers }}
-        </span>
-        <span class="text-text-muted">/ {{ room.maxPlayers }}명</span>
-      </span>
+      <PlayerCount :current="room.currentPlayers" :max="room.maxPlayers" />
     </footer>
   </article>
 </template>

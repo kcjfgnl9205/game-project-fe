@@ -40,8 +40,9 @@ const canDraw = computed(() => isDrawer.value && game.status === 'DRAWING')
 
 function drawSeg(s: Stroke) {
   if (!ctx) return
-  ctx.strokeStyle = s.color
-  ctx.lineWidth = s.size
+  // color/size는 변경 시에만 실려 온다. 없으면 직전 ctx 상태를 그대로 유지한다.
+  if (s.color) ctx.strokeStyle = s.color
+  if (s.size != null) ctx.lineWidth = s.size
   ctx.lineCap = 'round'
   ctx.lineJoin = 'round'
   ctx.beginPath()
@@ -56,6 +57,10 @@ function clearCanvas() {
 // 전송 최적화: pointermove마다 보내지 않고 버퍼에 모아 프레임당 1회(batch) 전송
 let strokeBuffer: Stroke[] = []
 let flushRaf = 0
+// 마지막으로 전송한 color/size. 한 획 내내 동일하므로 바뀔 때만 payload에 싣는다.
+// pointerDown에서 null로 초기화 → 각 획의 첫 세그먼트엔 항상 포함된다.
+let lastSentColor: string | null = null
+let lastSentSize: number | null = null
 function flushStrokes() {
   flushRaf = 0
   if (strokeBuffer.length) {
@@ -86,6 +91,9 @@ function pointerDown(e: PointerEvent) {
   const p = toCanvas(e)
   lastX = p.x
   lastY = p.y
+  // 새 획 시작: 다음 세그먼트에 color/size를 반드시 다시 싣도록 초기화
+  lastSentColor = null
+  lastSentSize = null
   canvasEl.value?.setPointerCapture(e.pointerId)
 }
 function pointerMove(e: PointerEvent) {
@@ -98,16 +106,25 @@ function pointerMove(e: PointerEvent) {
   if (!drawing || !canDraw.value) return
   const p = toCanvas(e)
   // 브러시 두께도 표시 크기(side)에 무관하게 CANVAS_RES 기준으로 환산
-  const size = side.value > 0 ? (strokePx.value * CANVAS_RES) / side.value : strokePx.value
+  const size = Math.round(side.value > 0 ? (strokePx.value * CANVAS_RES) / side.value : strokePx.value)
+  // 좌표는 정수로 반올림(CANVAS_RES=1000 기준 충분) → payload 축소
   const seg: Stroke = {
-    x0: lastX,
-    y0: lastY,
-    x1: p.x,
-    y1: p.y,
-    color: selectedColor.value,
-    size,
+    x0: Math.round(lastX),
+    y0: Math.round(lastY),
+    x1: Math.round(p.x),
+    y1: Math.round(p.y),
   }
-  drawSeg(seg) // 본인 화면 즉시 반영
+  // color/size는 바뀐 경우(획 첫 세그먼트 포함)에만 싣는다
+  if (selectedColor.value !== lastSentColor) {
+    seg.color = selectedColor.value
+    lastSentColor = selectedColor.value
+  }
+  if (size !== lastSentSize) {
+    seg.size = size
+    lastSentSize = size
+  }
+  // 본인 화면 즉시 반영 (color/size가 생략된 세그먼트도 ctx 상태가 유지됨)
+  drawSeg(seg)
   strokeBuffer.push(seg) // 전송은 프레임당 묶어서 (throttle + batch)
   scheduleFlush()
   lastX = p.x

@@ -37,12 +37,15 @@ export interface ChatLine {
 
 // 그리기 선분 한 조각. 좌표/두께는 해상도 독립을 위해 고정 기준(0~CANVAS_RES)으로 주고받는다.
 export interface Stroke {
+  // 좌표는 CANVAS_RES(1000) 기준 정수. 소수점은 화질에 무의미하므로 반올림해 전송한다.
   x0: number
   y0: number
   x1: number
   y1: number
-  color: string
-  size: number
+  // color/size는 한 획 내내 동일하므로 획 시작(또는 값 변경) 세그먼트에만 싣는다.
+  // 이후 세그먼트는 직전 값을 그대로 유지(캔버스 ctx 상태가 보존됨)한다.
+  color?: string
+  size?: number
 }
 
 interface LobbyState {

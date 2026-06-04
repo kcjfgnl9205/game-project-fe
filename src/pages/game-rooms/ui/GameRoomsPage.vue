@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, watch } from 'vue'
-import { RouterLink, useRoute } from 'vue-router'
+import { RouterLink, useRoute, useRouter } from 'vue-router'
 import { Button, Input, Pagination } from '@/shared/ui'
 import RoomCard from '@/entities/room/ui/RoomCard.vue'
 import { useModalStore, useAuthStore } from '@/shared/stores'
@@ -18,8 +18,21 @@ import { ROUTE_NAME } from '@/app/router/router-name'
 const modal = useModalStore()
 const auth = useAuthStore()
 const route = useRoute()
+const router = useRouter()
 const nav = useNavigation()
 const toast = useToast()
+
+// 게임 플레이 화면으로 이동. 아직 플레이 페이지(라우트)가 없는 게임이면
+// 이동 대신 목록을 새로고침하고 안내한다. (라우트 이름 = gameId)
+async function enterGame(roomId: string) {
+  if (!game.value) return
+  if (router.hasRoute(game.value.id)) {
+    await nav.toGameRoom(game.value.id, roomId)
+  } else {
+    toast.success('이 게임의 플레이 화면은 준비 중이에요.')
+    await loadRooms()
+  }
+}
 
 const search = ref('')
 const rooms = ref<RoomListItem[]>([])
@@ -86,7 +99,7 @@ async function onCreateRoom() {
 
   try {
     const room = await createRoom(payload)
-    await nav.toGameRoom(game.value.id, room.id)
+    await enterGame(room.id)
   } catch (e) {
     toast.error(e, '방을 만들지 못했습니다.')
   }
@@ -115,7 +128,7 @@ async function enterRoom(room: RoomListItem) {
         }
       },
     })
-    if (entered) await nav.toGameRoom(game.value.id, room.id)
+    if (entered) await enterGame(room.id)
     return
   }
 
@@ -126,11 +139,11 @@ async function enterRoom(room: RoomListItem) {
     if (!auth.isAuthenticated) body.nickname = getGuestNickname()
 
     await joinRoom(room.id, body)
-    await nav.toGameRoom(game.value.id, room.id)
+    await enterGame(room.id)
   } catch (e) {
     // 이미 참가 중(409)이면 그대로 입장 처리
     if (e instanceof ApiError && e.status === 409) {
-      await nav.toGameRoom(game.value.id, room.id)
+      await enterGame(room.id)
       return
     }
     toast.error(e, '방에 입장하지 못했습니다.')

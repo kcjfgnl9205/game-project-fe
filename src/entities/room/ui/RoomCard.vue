@@ -28,10 +28,13 @@ defineProps<Props>()
       </Badge>
     </header>
 
-    <!-- 그리는 시간 -->
+    <!-- 게임별 설정 요약 -->
     <div class="flex items-center gap-2 text-sm text-text-secondary">
       <i-local-timer aria-hidden="true" class="text-text-muted" />
-      <span>{{ room.drawTimeSec }}초</span>
+      <span v-if="room.gameType === 'WHO_DREW'">
+        {{ room.config.rounds }}바퀴 · 한 획 {{ room.config.turnTimeSec }}초
+      </span>
+      <span v-else>{{ room.config.drawTimeSec }}초</span>
     </div>
 
     <!-- 참가인원 -->

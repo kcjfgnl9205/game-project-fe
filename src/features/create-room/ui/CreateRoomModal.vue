@@ -3,7 +3,9 @@ import { computed, ref } from 'vue'
 import { Button, Input } from '@/shared/ui'
 import { useModalStore, useAuthStore } from '@/shared/stores'
 import { getGuestNickname, setGuestNickname } from '@/shared/lib/guest'
-import type { CreateRoomRequest } from '@/entities/room/model'
+import { games } from '@/shared/lib/games'
+import { CONFIG_FORMS } from '@/features/create-room/config-forms'
+import type { CreateRoomRequest, RoomConfig } from '@/entities/room/model'
 
 interface Props {
   modalId: number
@@ -15,15 +17,20 @@ const modal = useModalStore()
 const auth = useAuthStore()
 const isGuest = computed(() => !auth.isAuthenticated)
 
+// 모달 수명 동안 gameId는 고정 → 한 번만 조회한다.
+const game = games.find((g) => g.id === props.gameId)
+// 게임별 설정 폼 (없으면 설정 섹션 미표시). 게임 추가 시 이 모달은 안 바뀜.
+const configForm = game?.gameType ? CONFIG_FORMS[game.gameType] : undefined
+const minP = game?.minPlayers ?? 2
+const maxP = game?.maxPlayers ?? 8
+const MAX_PLAYER_OPTIONS = Array.from({ length: maxP - minP + 1 }, (_, i) => minP + i)
+
 const name = ref('')
-const maxPlayers = ref(4)
-const drawTimeSec = ref(60)
+const maxPlayers = ref(Math.min(Math.max(4, minP), maxP))
 const isPrivate = ref(false)
 const password = ref('')
 const nickname = ref(isGuest.value ? getGuestNickname() : '')
-
-const MAX_PLAYER_OPTIONS = [2, 3, 4, 5, 6, 7, 8]
-const DRAW_TIME_OPTIONS = [30, 60, 90, 120, 180]
+const config = ref<RoomConfig>({}) // 게임별 폼이 채운다 (v-model)
 
 const canSubmit = computed(() => {
   if (name.value.trim().length === 0) return false
@@ -40,11 +47,12 @@ const onSubmit = () => {
   if (!canSubmit.value) return
 
   const result: CreateRoomRequest = {
+    gameType: game?.gameType,
     name: name.value.trim(),
     maxPlayers: maxPlayers.value,
-    drawTimeSec: drawTimeSec.value,
     isPrivate: isPrivate.value,
     password: isPrivate.value ? password.value.trim() : undefined,
+    config: config.value,
   }
 
   if (isGuest.value) {
@@ -92,32 +100,23 @@ const onSubmit = () => {
       />
     </div>
 
-    <!-- 인원 / 그리기 시간 -->
-    <div class="mt-5 grid grid-cols-2 gap-4">
-      <div>
-        <label for="create-room-max" class="block text-sm font-semibold text-text-primary">
-          최대 인원
-        </label>
-        <select
-          id="create-room-max"
-          v-model.number="maxPlayers"
-          class="mt-3 h-12 w-full rounded-xl border border-border bg-bg-elevated px-4 text-sm text-text-primary focus:border-brand focus:outline-none"
-        >
-          <option v-for="n in MAX_PLAYER_OPTIONS" :key="n" :value="n">{{ n }}명</option>
-        </select>
-      </div>
-      <div>
-        <label for="create-room-time" class="block text-sm font-semibold text-text-primary">
-          그리기 시간
-        </label>
-        <select
-          id="create-room-time"
-          v-model.number="drawTimeSec"
-          class="mt-3 h-12 w-full rounded-xl border border-border bg-bg-elevated px-4 text-sm text-text-primary focus:border-brand focus:outline-none"
-        >
-          <option v-for="s in DRAW_TIME_OPTIONS" :key="s" :value="s">{{ s }}초</option>
-        </select>
-      </div>
+    <!-- 최대 인원 (공통) -->
+    <div class="mt-5">
+      <label for="create-room-max" class="block text-sm font-semibold text-text-primary">
+        최대 인원
+      </label>
+      <select
+        id="create-room-max"
+        v-model.number="maxPlayers"
+        class="mt-3 h-12 w-full rounded-xl border border-border bg-bg-elevated px-4 text-sm text-text-primary focus:border-brand focus:outline-none"
+      >
+        <option v-for="n in MAX_PLAYER_OPTIONS" :key="n" :value="n">{{ n }}명</option>
+      </select>
+    </div>
+
+    <!-- 게임별 설정 (게임이 자기 폼을 제공) -->
+    <div v-if="configForm" class="mt-5">
+      <component :is="configForm" v-model="config" />
     </div>
 
     <!-- 비밀 방 토글 -->

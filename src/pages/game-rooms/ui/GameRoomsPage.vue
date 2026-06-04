@@ -63,6 +63,7 @@ async function loadRooms() {
       page: page.value,
       limit,
       q: debouncedQ.value || undefined,
+      gameType: game.value?.gameType,
     })
     rooms.value = items
     total.value = t

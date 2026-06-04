@@ -1,4 +1,5 @@
 import { http, type PaginationParams, type PaginatedResponse } from '@/shared/api'
+import type { GameType } from '@/shared/lib/games'
 import type {
   CreateRoomRequest,
   JoinRoomRequest,
@@ -9,7 +10,11 @@ import type {
 
 // 회원/게스트 식별자는 http 인터셉터가 헤더로 자동 부착한다(§0). nickname만 body로 넘긴다.
 
-export const fetchRooms = async (params: PaginationParams = {}) => {
+export interface RoomListParams extends PaginationParams {
+  gameType?: GameType // 게임별 방만 조회 (미지정 시 서버 기본값 SKETCH_PIC)
+}
+
+export const fetchRooms = async (params: RoomListParams = {}) => {
   const { data } = await http.get<PaginatedResponse<RoomListItem>>('/rooms', { params })
   return data
 }

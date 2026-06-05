@@ -2,20 +2,22 @@
 import { useNavigation } from '@/shared/composables'
 import { Button, PlayerCount } from '@/shared/ui'
 
+// 게임 플레이 화면 공통 헤더. gameId로 나가기 fallback(방 목록)을 게임별로 분기한다.
 interface Props {
+  gameId: string
   gameName: string
   roomName: string
   currentPlayers: number
   maxPlayers: number
 }
 
-defineProps<Props>()
+const props = defineProps<Props>()
 
 const nav = useNavigation()
 
-// 이전 history가 있으면 back으로 detail entry를 제거 (브라우저 뒤로가기가 자연스러워짐).
-// 직접 URL/공유 링크로 진입해 history가 없으면 방 목록으로 fallback.
-const onExit = () => nav.backOr(() => nav.toGameRooms('sketch-pick'))
+// 이전 history가 있으면 back으로 detail entry를 제거(브라우저 뒤로가기 자연스러움),
+// 직접 진입(공유 링크 등)이라 history가 없으면 해당 게임 방 목록으로 fallback.
+const onExit = () => nav.backOr(() => nav.toGameRooms(props.gameId))
 </script>
 
 <template>

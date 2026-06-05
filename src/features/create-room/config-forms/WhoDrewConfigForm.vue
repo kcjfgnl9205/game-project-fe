@@ -6,7 +6,7 @@ const model = defineModel<RoomConfig>({ required: true })
 
 const ROUND_OPTIONS = [4, 5, 6, 7, 8]
 const TURN_TIME_OPTIONS = [15, 20, 30]
-const state = reactive({ rounds: 5, turnTimeSec: 20, allowMidVote: true })
+const state = reactive({ rounds: 4, turnTimeSec: 20 })
 watch(state, () => (model.value = { ...state }), { immediate: true, deep: true })
 
 const selectClass =
@@ -31,14 +31,5 @@ const selectClass =
         <option v-for="s in TURN_TIME_OPTIONS" :key="s" :value="s">{{ s }}초</option>
       </select>
     </div>
-    <label class="col-span-2 flex cursor-pointer flex-col">
-      <span class="block text-sm font-semibold text-text-primary">중간 투표</span>
-      <span
-        class="mt-3 flex h-12 items-center gap-3 rounded-xl border border-border bg-bg-elevated px-4"
-      >
-        <input v-model="state.allowMidVote" type="checkbox" class="h-4 w-4 accent-brand" />
-        <span class="text-sm text-text-secondary">의심 투표 허용</span>
-      </span>
-    </label>
   </div>
 </template>

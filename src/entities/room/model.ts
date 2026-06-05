@@ -7,7 +7,6 @@ export interface RoomConfig {
   drawTimeSec?: number // SKETCH_PIC
   rounds?: number // WHO_DREW
   turnTimeSec?: number // WHO_DREW
-  allowMidVote?: boolean // WHO_DREW
 }
 
 /** 방 목록 항목 (GET /rooms). 호스트/참가자 정보는 상세에서만 온다. */

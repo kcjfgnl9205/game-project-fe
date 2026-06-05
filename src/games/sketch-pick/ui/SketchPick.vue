@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { onBeforeRouteLeave, useRoute } from 'vue-router'
-import SketchPickHeader from './SketchPickHeader.vue'
+import GameHeader from '@/widgets/game-header/GameHeader.vue'
 import SketchPickParticipants from './SketchPickParticipants.vue'
 import SketchPickCanvas from './SketchPickCanvas.vue'
 import SketchPickChat from './SketchPickChat.vue'
@@ -107,7 +107,8 @@ onUnmounted(() => {
 <template>
   <div class="flex h-dvh flex-col" v-if="room">
     <!-- 헤더 -->
-    <SketchPickHeader
+    <GameHeader
+      game-id="sketch-pick"
       game-name="스케치픽"
       :room-name="room.name"
       :current-players="participants.length"

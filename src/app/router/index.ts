@@ -8,6 +8,7 @@ import { gameRoomsRoute } from '@/pages/game-rooms'
 import { noticeRoute } from '@/pages/notice'
 import { noticeDetailRoute } from '@/pages/notice-detail'
 import { sketchPickRoute } from '@/games/sketch-pick'
+import { whoDrewRoute } from '@/games/who-drew'
 import { ROUTE_NAME } from './router-name'
 import { useAuthStore } from '@/shared/stores'
 
@@ -29,7 +30,7 @@ const router = createRouter({
     {
       path: '/games',
       component: GameLayout,
-      children: [sketchPickRoute /* , wordChainRoute, ... */],
+      children: [sketchPickRoute, whoDrewRoute /* , wordChainRoute, ... */],
     },
   ],
 })

@@ -1,5 +1,13 @@
 <script setup lang="ts">
+import { useModalStore } from '@/shared/stores'
+import { InquiryModal } from '@/features/inquiry'
+
 const year = new Date().getFullYear()
+const modal = useModalStore()
+
+const openInquiry = () => {
+  modal.open(InquiryModal)
+}
 </script>
 
 <template>
@@ -11,7 +19,16 @@ const year = new Date().getFullYear()
         <span class="text-brand" aria-hidden="true">🎮</span>
         <span class="font-semibold">미니게임 파크</span>
       </div>
-      <p class="text-xs text-text-muted">© {{ year }} 미니게임 파크. All rights reserved.</p>
+      <div class="flex items-center gap-4">
+        <button
+          type="button"
+          class="text-xs text-text-muted transition-colors hover:text-text-primary"
+          @click="openInquiry"
+        >
+          문의하기
+        </button>
+        <p class="text-xs text-text-muted">© {{ year }} 미니게임 파크. All rights reserved.</p>
+      </div>
     </div>
   </footer>
 </template>

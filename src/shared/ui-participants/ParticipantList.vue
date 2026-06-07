@@ -1,11 +1,5 @@
 <script setup lang="ts">
-import type { Participant } from '@/games/who-drew/model/game.store'
-import WhoDrewParticipantCard from './WhoDrewParticipantCard.vue'
-
-interface Props {
-  participants: Participant[]
-}
-defineProps<Props>()
+// 게임 공통 참가자 사이드바(셸). 카드 목록은 슬롯으로 받는다.
 </script>
 
 <template>
@@ -16,7 +10,7 @@ defineProps<Props>()
     </header>
 
     <ul class="flex-1 space-y-2 overflow-y-auto p-3">
-      <WhoDrewParticipantCard v-for="p in participants" :key="p.id" :participant="p" />
+      <slot />
     </ul>
   </aside>
 </template>

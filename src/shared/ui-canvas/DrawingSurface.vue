@@ -6,6 +6,7 @@ import type { Segment } from './types'
 const props = withDefaults(
   defineProps<{
     canDraw?: boolean // 포인터로 그릴 수 있는지 (게임 규칙은 부모가 판단)
+    active?: boolean // 현재 그리는 사람이면 테두리를 brand로 강조
     cursorSizePx?: number // 브러시 미리보기 커서 지름(표시 px)
     cursorColor?: string
     cursorBg?: string
@@ -15,6 +16,7 @@ const props = withDefaults(
   }>(),
   {
     canDraw: false,
+    active: false,
     cursorSizePx: 0,
     cursorColor: '#1f2937',
     cursorBg: 'transparent',
@@ -104,7 +106,8 @@ defineExpose({ drawSegment, drawStroke, clear, CANVAS_RES })
     <div :style="{ width: `${side}px` }">
       <!-- 그림 영역 (정사각형). 오버레이/커서는 이 안에 absolute로 띄운다. -->
       <div
-        class="relative aspect-square w-full overflow-hidden rounded border border-neutral-200 bg-white shadow-inner"
+        class="relative aspect-square w-full overflow-hidden rounded border bg-white shadow-inner transition-colors"
+        :class="active ? 'border-brand ring-4 ring-brand' : 'border-neutral-200'"
         aria-label="그림 영역"
       >
         <canvas

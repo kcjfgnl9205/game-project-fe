@@ -2,7 +2,7 @@
 import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { onBeforeRouteLeave, useRoute } from 'vue-router'
 import GameHeader from '@/widgets/game-header/GameHeader.vue'
-import WhoDrewParticipants from './WhoDrewParticipants.vue'
+import { ParticipantList, ParticipantCard } from '@/shared/ui-participants'
 import WhoDrewCanvas from './WhoDrewCanvas.vue'
 import WhoDrewLobbyModal from './WhoDrewLobbyModal.vue'
 import WhoDrewVoteModal from './WhoDrewVoteModal.vue'
@@ -104,7 +104,18 @@ onUnmounted(() => {
     />
 
     <div class="flex min-h-0 flex-1 overflow-hidden">
-      <WhoDrewParticipants :participants="participants" />
+      <ParticipantList>
+        <ParticipantCard
+          v-for="p in participants"
+          :key="p.id"
+          :nickname="p.nickname"
+          :is-host="p.isHost"
+          :is-me="p.isMe"
+          :active="p.isTurn"
+        >
+          {{ p.isTurn ? '그리는 중…' : p.isPlaying ? '참가' : '관전' }}
+        </ParticipantCard>
+      </ParticipantList>
 
       <div class="flex min-h-0 min-w-0 flex-1 flex-col">
         <WhoDrewCanvas :my-player-id="myPlayerId">

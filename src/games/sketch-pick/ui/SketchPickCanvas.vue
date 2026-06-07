@@ -94,10 +94,13 @@ function clearAll() {
   game.sendClear()
 }
 
-// 새 출제자가 정해지면(턴 전환) 캔버스 초기화
+// 실제 턴 전환(이전 출제자 → 새 출제자)에서만 캔버스 초기화.
+// 입장 직후 null→출제자 전환에서 지우면 중간 입장 시 재생된 그림이 사라지므로 제외한다.
 watch(
   () => game.currentDrawerKey,
-  () => surface.value?.clear(),
+  (_key, prev) => {
+    if (prev != null) surface.value?.clear()
+  },
 )
 
 onMounted(() => {
@@ -116,6 +119,7 @@ onBeforeUnmount(() => {
     ref="surface"
     wrap-class="bg-bg p-6"
     :can-draw="canDraw"
+    :active="canDraw"
     :cursor-size-px="strokePx"
     :cursor-color="isEraser ? '#9ca3af' : selectedColor"
     :cursor-bg="isEraser ? 'rgba(0,0,0,0.04)' : `${selectedColor}33`"

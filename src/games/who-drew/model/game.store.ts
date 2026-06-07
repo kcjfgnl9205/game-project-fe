@@ -234,6 +234,10 @@ export const useGameStore = defineStore('who-drew-game', () => {
   function sendStroke(seg: Stroke) {
     if (seg.length) socket?.emit('draw:stroke', { seg })
   }
+  // 그리는 도중 실시간 중계 (저장/턴 넘김 없음). pointerup에서 sendStroke로 최종 commit.
+  function sendLive(seg: Stroke) {
+    if (seg.length) socket?.emit('draw:live', { seg })
+  }
   function vote(targetKey: string) {
     myVote.value = targetKey
     socket?.emit('vote:cast', { targetKey })
@@ -272,6 +276,7 @@ export const useGameStore = defineStore('who-drew-game', () => {
     startGame,
     stopGame,
     sendStroke,
+    sendLive,
     vote,
     sendChat,
     onRemoteStroke,

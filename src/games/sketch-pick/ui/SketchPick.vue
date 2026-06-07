@@ -2,7 +2,7 @@
 import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { onBeforeRouteLeave, useRoute } from 'vue-router'
 import GameHeader from '@/widgets/game-header/GameHeader.vue'
-import SketchPickParticipants from './SketchPickParticipants.vue'
+import { ParticipantList, ParticipantCard } from '@/shared/ui-participants'
 import SketchPickCanvas from './SketchPickCanvas.vue'
 import SketchPickLobbyModal from './SketchPickLobbyModal.vue'
 import SketchPickWordSelectModal from './SketchPickWordSelectModal.vue'
@@ -129,7 +129,19 @@ onUnmounted(() => {
     />
 
     <div class="flex min-h-0 flex-1 overflow-hidden">
-      <SketchPickParticipants :participants="participants" />
+      <ParticipantList>
+        <ParticipantCard
+          v-for="p in participants"
+          :key="p.id"
+          :nickname="p.nickname"
+          :is-host="p.isHost"
+          :is-me="p.isMe"
+          :active="p.isDrawing"
+          :score-pop="game.scorePops[p.id] ?? null"
+        >
+          {{ p.score }}점
+        </ParticipantCard>
+      </ParticipantList>
 
       <!-- 그림 영역 -->
       <div class="flex min-h-0 min-w-0 flex-1 flex-col">

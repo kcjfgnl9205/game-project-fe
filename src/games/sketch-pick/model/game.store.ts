@@ -66,6 +66,7 @@ interface SocketAuth {
 // socket은 반응형일 필요가 없어 모듈 스코프에 둔다.
 let socket: Socket | null = null
 let chatSeq = 0
+let popSeq = 0 // 점수 획득 연출 트리거용 단조 증가 시퀀스
 // 원격 그리기 이벤트를 캔버스 컴포넌트로 전달하는 콜백 (연속 스트림이라 ref보다 콜백이 적합)
 // stroke는 한 프레임 분량을 배열(batch)로 묶어 주고받는다.
 let remoteStrokeCb: ((s: Stroke[]) => void) | null = null
@@ -87,6 +88,8 @@ export const useGameStore = defineStore('sketch-pick-game', () => {
   const word = ref<string | null>(null)
   // 제시어 글자 수(방 전체 수신). 맞히는 사람에게 ○○○ 형태로 보여줄 때 쓴다.
   const wordLength = ref(0)
+  // 정답 시 점수 획득 연출용: playerId -> { delta, at(seq) }. at이 바뀌면 카드가 +N 애니메이션.
+  const scorePops = ref<Record<string, { delta: number; at: number }>>({})
 
   // 턴 경계에서 단어 관련 상태를 초기화한다(이전 턴 제시어 잔상 방지).
   function clearWord() {
@@ -105,6 +108,7 @@ export const useGameStore = defineStore('sketch-pick-game', () => {
     announcement.value = null
     chat.value = []
     error.value = null
+    scorePops.value = {}
     clearWord()
   }
 
@@ -238,6 +242,11 @@ export const useGameStore = defineStore('sketch-pick-game', () => {
         players.value = players.value.map((p) =>
           p.playerId === payload.playerId ? { ...p, score: p.score + payload.scoreDelta } : p,
         )
+        // +N 획득 연출 트리거 (at은 매번 증가시켜 같은 점수여도 재실행되게)
+        scorePops.value = {
+          ...scorePops.value,
+          [payload.playerId]: { delta: payload.scoreDelta, at: ++popSeq },
+        }
         console.debug('[sketch-pick] guess:correct', payload)
       },
     )
@@ -333,6 +342,7 @@ export const useGameStore = defineStore('sketch-pick-game', () => {
     wordChoices,
     word,
     wordLength,
+    scorePops,
     connect,
     sendChat,
     startGame,

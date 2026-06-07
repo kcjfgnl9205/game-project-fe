@@ -17,7 +17,7 @@ const openInquiry = () => {
     >
       <div class="flex items-center gap-2 text-sm text-text-primary">
         <span class="text-brand" aria-hidden="true">🎮</span>
-        <span class="font-semibold">미니게임 파크</span>
+        <span class="font-semibold">놀모아</span>
       </div>
       <div class="flex items-center gap-4">
         <button
@@ -27,7 +27,7 @@ const openInquiry = () => {
         >
           문의하기
         </button>
-        <p class="text-xs text-text-muted">© {{ year }} 미니게임 파크. All rights reserved.</p>
+        <p class="text-xs text-text-muted">© {{ year }} 놀모아. All rights reserved.</p>
       </div>
     </div>
   </footer>

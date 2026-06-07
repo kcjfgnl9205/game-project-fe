@@ -3,7 +3,7 @@ import { CANVAS_RES, type Segment } from './types'
 
 interface Options {
   // 색/두께가 생략된 세그먼트가 사용할 기본 스타일.
-  // 예: 누가그렸지는 고정 색/두께만 쓰므로 세그먼트에 color/size를 싣지 않는다.
+  // 예: 그림 마피아 고정 색/두께만 쓰므로 세그먼트에 color/size를 싣지 않는다.
   defaultColor?: string
   defaultStrokeWidth?: number // CANVAS_RES 기준
 }

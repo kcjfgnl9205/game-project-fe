@@ -19,7 +19,7 @@ import { Button } from '@/shared/ui'
         </p>
         <div class="mt-8 flex justify-center">
           <Button variant="primary" size="lg">
-            스케치픽 시작하기
+            그림 맞추기 시작하기
             <span aria-hidden="true">›</span>
           </Button>
         </div>

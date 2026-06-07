@@ -18,7 +18,7 @@ export interface GameSummary {
 export const games: GameSummary[] = [
   {
     id: 'sketch-pick',
-    name: '스케치픽',
+    name: '그림 맞추기',
     description: '그림을 그리고 맞춰보세요!',
     icon: '🎨',
     minPlayers: 2,
@@ -29,7 +29,7 @@ export const games: GameSummary[] = [
   },
   {
     id: 'who-drew',
-    name: '누가 그렸지',
+    name: '그림 마피아',
     description: '함께 그리고 마피아를 찾아내세요!',
     icon: '🖌️',
     minPlayers: 4,

@@ -15,7 +15,7 @@ const isDrawer = computed(
 // 출제자 + DRAWING 단계에서만 그릴 수 있다.
 const canDraw = computed(() => isDrawer.value && game.status === 'DRAWING')
 
-// ===== 팔레트 / 브러시 (스케치픽 전용) =====
+// ===== 팔레트 / 브러시 (그림 맞추기 전용) =====
 const palette = [
   '#000000',
   '#ffffff',

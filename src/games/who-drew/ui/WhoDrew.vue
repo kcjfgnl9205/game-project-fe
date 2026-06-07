@@ -97,7 +97,7 @@ onUnmounted(() => {
   <div v-if="room" class="flex h-dvh flex-col">
     <GameHeader
       game-id="who-drew"
-      game-name="누가 그렸지"
+      game-name="그림 마피아"
       :room-name="room.name"
       :current-players="game.players.length"
       :max-players="room.maxPlayers"

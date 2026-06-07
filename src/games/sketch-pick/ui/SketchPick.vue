@@ -122,7 +122,7 @@ onUnmounted(() => {
     <!-- 헤더 -->
     <GameHeader
       game-id="sketch-pick"
-      game-name="스케치픽"
+      game-name="그림 맞추기"
       :room-name="room.name"
       :current-players="participants.length"
       :max-players="room.maxPlayers"

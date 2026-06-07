@@ -30,7 +30,7 @@ async function onLogout() {
         >
           🎮
         </span>
-        <span class="text-lg font-bold text-text-primary">미니게임 파크</span>
+        <span class="text-lg font-bold text-text-primary">놀모아</span>
       </RouterLink>
 
       <nav class="hidden items-center gap-8 md:flex">

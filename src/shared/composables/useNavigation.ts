@@ -11,15 +11,17 @@ export function useNavigation() {
   return {
     toHome: () => router.push({ name: ROUTE_NAME.HOME }),
     toLogin: () => router.push({ name: ROUTE_NAME.LOGIN }),
+    toTerms: () => router.push({ name: ROUTE_NAME.TERMS }),
+    toPrivacy: () => router.push({ name: ROUTE_NAME.PRIVACY }),
+
     toGameRooms: (gameId: string) =>
       router.push({ name: ROUTE_NAME.GAME_ROOMS, params: { gameId } }),
     // 게임 플레이 화면. 라우트 이름이 곧 gameId (예: 'sketch-pick').
     toGameRoom: (gameId: string, roomId: string) =>
       router.push({ name: gameId, params: { roomId } }),
 
-    back: () => router.back(),
-
     // history가 있으면 뒤로가기로 직전 entry를 제거, 없으면(직접 진입) fallback으로 이동.
+    back: () => router.back(),
     backOr: (fallback: () => void) => {
       if (window.history.state?.back) router.back()
       else fallback()

@@ -1,12 +1,12 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import DefaultLayout from '@/app/layouts/DefaultLayout.vue'
-import GameLayout from '@/app/layouts/GameLayout.vue'
 import { landingRoute } from '@/pages/landing'
 import { loginRoute } from '@/pages/login'
 import { gameListRoute } from '@/pages/game-list'
 import { gameRoomsRoute } from '@/pages/game-rooms'
 import { noticeRoute } from '@/pages/notice'
 import { noticeDetailRoute } from '@/pages/notice-detail'
+import { termsRoute } from '@/pages/terms'
+import { privacyRoute } from '@/pages/privacy'
 import { sketchPickRoute } from '@/games/sketch-pick'
 import { whoDrewRoute } from '@/games/who-drew'
 import { ROUTE_NAME } from './router-name'
@@ -17,7 +17,7 @@ const router = createRouter({
   routes: [
     {
       path: '/',
-      component: DefaultLayout,
+      component: () => import('@/app/layouts/DefaultLayout.vue'),
       children: [
         landingRoute,
         loginRoute,
@@ -25,11 +25,13 @@ const router = createRouter({
         gameRoomsRoute,
         noticeRoute,
         noticeDetailRoute,
+        termsRoute,
+        privacyRoute,
       ],
     },
     {
       path: '/games',
-      component: GameLayout,
+      component: () => import('@/app/layouts/GameLayout.vue'),
       children: [sketchPickRoute, whoDrewRoute /* , wordChainRoute, ... */],
     },
   ],

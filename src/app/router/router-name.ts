@@ -5,6 +5,8 @@ export const ROUTE_NAME = {
   GAME_ROOMS: 'game-rooms',
   NOTICE: 'notice',
   NOTICE_DETAIL: 'notice-detail',
+  TERMS: 'terms',
+  PRIVACY: 'privacy',
 
   // games — 각 게임이 자기 route를 가짐 (값 = gameId)
   SKETCH_PICK: 'sketch-pick',

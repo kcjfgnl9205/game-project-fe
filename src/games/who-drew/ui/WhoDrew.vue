@@ -4,9 +4,11 @@ import { onBeforeRouteLeave, useRoute } from 'vue-router'
 import GameHeader from '@/widgets/game-header/GameHeader.vue'
 import WhoDrewParticipants from './WhoDrewParticipants.vue'
 import WhoDrewCanvas from './WhoDrewCanvas.vue'
-import WhoDrewChat from './WhoDrewChat.vue'
-import { Button } from '@/shared/ui'
-import { ModalShell } from '@/shared/ui-modal'
+import WhoDrewLobbyModal from './WhoDrewLobbyModal.vue'
+import WhoDrewVoteModal from './WhoDrewVoteModal.vue'
+import WhoDrewResultModal from './WhoDrewResultModal.vue'
+import { CanvasNotice, CanvasChip } from '@/shared/ui-canvas'
+import { ChatPanel } from '@/shared/ui-chat'
 import { useGameStore, type Participant } from '@/games/who-drew/model/game.store'
 import { fetchRoom, leaveRoom } from '@/entities/room/api'
 import type { Room } from '@/entities/room/model'
@@ -28,19 +30,6 @@ const roomId = computed(() =>
 const myPlayerId = computed(() =>
   auth.isAuthenticated ? `user:${auth.user?.id}` : `guest:${getGuestId()}`,
 )
-const isHost = computed(() => game.hostKey === myPlayerId.value)
-
-const nameOf = (key: string | null) =>
-  game.players.find((p) => p.playerId === key)?.nickname ?? '알 수 없음'
-
-// 지목된 사람(들). 동률이면 전원 표기.
-const accusedText = computed(() => {
-  const keys = game.result?.accusedKeys ?? []
-  if (!keys.length) return '없음'
-  const names = keys.map(nameOf).join(', ')
-  return keys.length > 1 ? `${names} (동률)` : names
-})
-
 const participants = computed<Participant[]>(() =>
   game.players.map((p) => ({
     id: p.playerId,
@@ -59,9 +48,6 @@ const seconds = computed(() => {
   if (!game.turnEndsAt) return 0
   return Math.max(0, Math.ceil((game.turnEndsAt - now.value) / 1000))
 })
-
-// 투표 후보 (나 제외)
-const voteCandidates = computed(() => game.candidates.filter((c) => c.key !== myPlayerId.value))
 
 function handlePageUnload() {
   if (hasLeft.value) return
@@ -123,128 +109,60 @@ onUnmounted(() => {
       <div class="flex min-h-0 min-w-0 flex-1 flex-col">
         <WhoDrewCanvas :my-player-id="myPlayerId">
           <template #overlay>
-            <!-- 단어/차례 배너 (진행 중) -->
+            <!-- 제시어/역할(좌) · 시간/라운드(우) 배너 (진행 중) -->
             <div
               v-if="game.status === 'DRAWING'"
-              class="pointer-events-none absolute inset-x-0 top-3 flex flex-col items-center gap-1 px-3"
+              class="pointer-events-none absolute inset-x-0 top-3 flex justify-between px-3"
             >
-              <div
-                class="rounded-xl border border-border bg-bg-card/95 px-4 py-2 text-sm font-semibold shadow-sm"
-              >
-                <span class="text-text-secondary">제시어</span>
-                <span class="ml-2 text-brand">{{ game.role?.word ?? '???' }}</span>
-                <span v-if="game.role?.isMafia" class="ml-2 text-warning">🕵️ 당신은 마피아</span>
+              <div class="flex items-center gap-1">
+                <CanvasChip>
+                  <span class="text-text-secondary">제시어</span>
+                  <span class="ml-1.5 truncate tracking-widest text-brand">
+                    {{ game.role?.word ?? '???' }}
+                  </span>
+                </CanvasChip>
+                <CanvasChip>
+                  <span :class="game.role?.isMafia ? 'text-warning' : 'text-text-secondary'">
+                    {{ game.role?.isMafia ? '🕵️ 마피아' : '🙂 시민' }}
+                  </span>
+                </CanvasChip>
               </div>
-              <div class="rounded-lg bg-bg-card/90 px-3 py-1 text-xs text-text-secondary shadow-sm">
-                {{ nameOf(game.currentTurnKey) }} 차례 · {{ game.currentRound }}/{{
-                  game.rounds
-                }}라운드 · {{ seconds }}초
+
+              <div class="flex items-center gap-1">
+                <CanvasChip>
+                  <span class="ml-2 text-text-secondary">
+                    {{ game.currentRound }}/{{ game.rounds }}라운드
+                  </span>
+                </CanvasChip>
+                <CanvasChip>
+                  <span
+                    v-if="game.turnEndsAt"
+                    class="inline-flex shrink-0 items-center gap-1 text-text-primary"
+                  >
+                    <i-local-timer aria-hidden="true" class="w-4 h-4" />
+                    <span class="tabular-nums">{{ seconds }}초</span>
+                  </span>
+                </CanvasChip>
               </div>
             </div>
 
             <!-- 에러 -->
-            <div
-              v-if="game.error"
-              class="pointer-events-none absolute inset-x-0 bottom-3 flex justify-center px-3"
-            >
-              <div
-                class="rounded-xl border border-red-200 bg-red-50 px-4 py-2 text-sm font-semibold text-red-700"
-              >
-                {{ game.error }}
-              </div>
-            </div>
+            <CanvasNotice :error="game.error" />
 
-            <!-- 로비(대기) -->
-            <ModalShell contained :open="game.status === 'LOBBY'">
-              <h3 class="text-center text-lg font-bold text-text-primary">게임 대기 중</h3>
-              <p class="mt-2 text-center text-sm text-text-secondary">
-                {{ game.players.length }}명 참가 중 · 최소 4명 필요
-              </p>
-              <div class="mt-5">
-                <Button
-                  v-if="isHost"
-                  variant="primary"
-                  size="lg"
-                  class="w-full"
-                  :disabled="game.players.length < 4"
-                  @click="game.startGame()"
-                >
-                  게임 시작
-                </Button>
-                <p v-else class="text-center text-sm text-text-muted">
-                  방장이 시작하기를 기다리는 중…
-                </p>
-              </div>
-            </ModalShell>
-
-            <!-- 투표 -->
-            <ModalShell contained :open="game.status === 'VOTE'">
-              <h3 class="text-center text-lg font-bold text-text-primary">마피아를 지목하세요</h3>
-              <p class="mt-1 text-center text-xs text-text-muted">
-                {{ game.voteInfo.voted }}/{{ game.voteInfo.total }} 투표 · {{ seconds }}초
-              </p>
-              <div class="mt-4 flex flex-col gap-2">
-                <Button
-                  v-for="c in voteCandidates"
-                  :key="c.key"
-                  :variant="game.myVote === c.key ? 'primary' : 'outline'"
-                  size="lg"
-                  :disabled="!!game.myVote"
-                  @click="game.vote(c.key)"
-                >
-                  {{ c.nickname }}
-                </Button>
-              </div>
-              <p v-if="game.myVote" class="mt-3 text-center text-sm text-brand">
-                {{ nameOf(game.myVote) }}님에게 투표 완료
-              </p>
-            </ModalShell>
-
-            <!-- 결과 -->
-            <ModalShell contained :open="game.status === 'RESULT' && !!game.result">
-              <h3
-                class="text-center text-xl font-bold"
-                :class="game.result?.winner === 'CIVILIAN' ? 'text-brand' : 'text-warning'"
-              >
-                {{ game.result?.winner === 'CIVILIAN' ? '시민 승리 🎉' : '마피아 승리 🕵️' }}
-              </h3>
-              <div class="mt-4 space-y-1.5 text-sm text-text-secondary">
-                <p>
-                  마피아:
-                  <b class="text-text-primary">{{ nameOf(game.result?.mafiaKey ?? null) }}</b>
-                </p>
-                <p>
-                  지목된 사람:
-                  <b class="text-text-primary">{{ accusedText }}</b>
-                </p>
-                <p>
-                  시민 단어: <b class="text-text-primary">{{ game.result?.civilianWord }}</b>
-                </p>
-                <p>
-                  마피아 단어: <b class="text-text-primary">{{ game.result?.mafiaWord }}</b>
-                </p>
-              </div>
-              <div class="mt-5">
-                <Button
-                  v-if="isHost"
-                  variant="primary"
-                  size="lg"
-                  class="w-full"
-                  :disabled="game.players.length < 4"
-                  @click="game.startGame()"
-                >
-                  다시 시작
-                </Button>
-                <p v-else class="text-center text-sm text-text-muted">
-                  방장이 다시 시작하기를 기다리는 중…
-                </p>
-              </div>
-            </ModalShell>
+            <!-- 로비 / 투표 / 결과 모달 -->
+            <WhoDrewLobbyModal :my-player-id="myPlayerId" />
+            <WhoDrewVoteModal :my-player-id="myPlayerId" :seconds="seconds" />
+            <WhoDrewResultModal :my-player-id="myPlayerId" />
           </template>
         </WhoDrewCanvas>
       </div>
 
-      <WhoDrewChat />
+      <ChatPanel
+        :messages="game.chat"
+        :my-player-id="myPlayerId"
+        placeholder="메시지를 입력하세요..."
+        @send="game.sendChat"
+      />
     </div>
   </div>
 

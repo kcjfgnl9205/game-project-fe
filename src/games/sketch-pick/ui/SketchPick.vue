@@ -4,9 +4,10 @@ import { onBeforeRouteLeave, useRoute } from 'vue-router'
 import GameHeader from '@/widgets/game-header/GameHeader.vue'
 import SketchPickParticipants from './SketchPickParticipants.vue'
 import SketchPickCanvas from './SketchPickCanvas.vue'
-import SketchPickChat from './SketchPickChat.vue'
-import { Button } from '@/shared/ui'
-import { ModalShell } from '@/shared/ui-modal'
+import SketchPickLobbyModal from './SketchPickLobbyModal.vue'
+import SketchPickWordSelectModal from './SketchPickWordSelectModal.vue'
+import { CanvasNotice, CanvasToolbar, CanvasChip } from '@/shared/ui-canvas'
+import { ChatPanel } from '@/shared/ui-chat'
 import { useGameStore, type Participant } from '@/games/sketch-pick/model/game.store'
 import { fetchRoom, leaveRoom } from '@/entities/room/api'
 import type { Room } from '@/entities/room/model'
@@ -35,6 +36,16 @@ const myPlayerId = computed(() =>
 const isMyTurn = computed(
   () => !!game.currentDrawerKey && game.currentDrawerKey === myPlayerId.value,
 )
+
+const promptText = computed(() =>
+  isMyTurn.value ? (game.word ?? '') : '○'.repeat(game.wordLength),
+)
+const now = ref(Date.now())
+let timer: ReturnType<typeof setInterval> | null = null
+const seconds = computed(() => {
+  if (!game.turnEndsAt) return 0
+  return Math.max(0, Math.ceil((game.turnEndsAt - now.value) / 1000))
+})
 
 // lobby:state 실시간 참가자 → 점수 내림차순 정렬해 순위 부여.
 const participants = computed<Participant[]>(() =>
@@ -86,6 +97,7 @@ onMounted(async () => {
     nickname: auth.isAuthenticated ? (auth.user?.nickname ?? '') : getGuestNickname(),
   })
 
+  timer = setInterval(() => (now.value = Date.now()), 1000)
   window.addEventListener('beforeunload', handlePageUnload)
   window.addEventListener('pagehide', handlePageUnload)
 })
@@ -96,6 +108,7 @@ onBeforeRouteLeave(async () => {
 })
 
 onUnmounted(() => {
+  if (timer) clearInterval(timer)
   window.removeEventListener('beforeunload', handlePageUnload)
   window.removeEventListener('pagehide', handlePageUnload)
   if (!hasLeft.value) {
@@ -121,49 +134,53 @@ onUnmounted(() => {
       <!-- 그림 영역 -->
       <div class="flex min-h-0 min-w-0 flex-1 flex-col">
         <SketchPickCanvas :my-player-id="myPlayerId">
-          <template #overlay>
-            <!-- 안내(에러/공지): 캔버스 상단 가운데 -->
+          <template #overlay="t">
+            <!-- 제시어 + 시간: 캔버스 상단 오버레이 -->
             <div
-              v-if="game.error || game.announcement"
-              class="pointer-events-none absolute inset-x-0 top-3 flex justify-center px-3"
+              v-if="game.status === 'DRAWING' || game.status === 'WORD_SELECT'"
+              class="pointer-events-none absolute inset-x-0 top-3 flex justify-between px-3"
             >
-              <div
-                class="rounded-xl border px-4 py-2 text-sm font-semibold shadow-sm"
-                :class="
-                  game.error
-                    ? 'border-red-200 bg-red-50 text-red-700'
-                    : 'border-brand bg-brand-soft text-brand'
-                "
-              >
-                {{ game.error || game.announcement }}
-              </div>
+              <CanvasChip>
+                <template v-if="game.status === 'DRAWING'">
+                  <span class="flex min-w-0 items-center">
+                    <span class="text-text-secondary">제시어</span>
+                    <span class="ml-1.5 truncate tracking-widest text-brand">
+                      {{ promptText }}
+                    </span>
+                  </span>
+                </template>
+                <template v-else>
+                  <span class="text-text-secondary">단어 선택 중…</span>
+                </template>
+              </CanvasChip>
+
+              <CanvasChip v-if="game.turnEndsAt">
+                <span class="inline-flex shrink-0 items-center gap-1 text-text-primary">
+                  <i-local-timer aria-hidden="true" class="w-4 h-4" />
+                  <span class="tabular-nums">{{ seconds }}초</span>
+                </span>
+              </CanvasChip>
             </div>
 
+            <!-- 안내(에러/공지): 캔버스 하단 가운데 (상단은 제시어 바가 사용) -->
+            <CanvasNotice :error="game.error" :info="game.announcement" />
+
+            <!-- 게임 대기(로비): 방장이 시작을 눌러야 시작 -->
+            <SketchPickLobbyModal :my-player-id="myPlayerId" />
             <!-- 단어 선택 모달: 출제자에게만, 캔버스 가운데 -->
-            <ModalShell
-              contained
-              :open="game.status === 'WORD_SELECT' && isMyTurn && game.wordChoices.length > 0"
-            >
-              <h3 class="mb-1 text-center text-lg font-bold text-text-primary">
-                그릴 단어를 선택하세요
-              </h3>
-              <p class="mb-4 text-center text-xs text-text-muted">선택하면 바로 시작됩니다</p>
-              <div class="flex flex-col gap-2">
-                <Button
-                  v-for="w in game.wordChoices"
-                  :key="w"
-                  variant="outline"
-                  size="lg"
-                  @click="game.pickWord(w)"
-                >
-                  {{ w }}
-                </Button>
-              </div>
-            </ModalShell>
+            <SketchPickWordSelectModal :my-player-id="myPlayerId" />
+
+            <!-- 툴바: 캔버스 하단 오버레이 (출제자만). 상태/액션은 캔버스가 scoped slot으로 노출 -->
+            <CanvasToolbar v-bind="t" />
           </template>
         </SketchPickCanvas>
       </div>
-      <SketchPickChat />
+      <ChatPanel
+        :messages="game.chat"
+        :my-player-id="myPlayerId"
+        placeholder="정답을 입력하세요..."
+        @send="game.sendChat"
+      />
     </div>
   </div>
 </template>

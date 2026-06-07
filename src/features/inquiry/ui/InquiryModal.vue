@@ -24,6 +24,8 @@ const email = ref(auth.isAuthenticated ? (auth.user?.email ?? '') : '')
 const categoryId = ref('')
 const title = ref('')
 const content = ref('')
+const agreed = ref(false) // 개인정보 수집·이용 동의 (필수)
+const showAgreeError = ref(false) // 미동의 상태로 제출 시도 시 오류 표시
 
 onMounted(async () => {
   try {
@@ -57,6 +59,11 @@ const onCancel = () => {
 
 const onSubmit = async () => {
   if (!canSubmit.value) return
+  // 개인정보 동의 미체크 시 제출 불가 + 오류 표시
+  if (!agreed.value) {
+    showAgreeError.value = true
+    return
+  }
 
   submitting.value = true
   try {
@@ -65,6 +72,7 @@ const onSubmit = async () => {
       categoryId: categoryId.value,
       title: title.value.trim(),
       content: content.value.trim(),
+      privacyConsent: true,
     })
     toast.success('문의가 접수되었습니다. 감사합니다!')
     modal.close(props.modalId)
@@ -142,6 +150,32 @@ const onSubmit = async () => {
         maxlength="2000"
         class="h-32 w-full resize-none rounded-lg border border-border bg-bg-elevated px-3 py-2 text-sm text-text-primary transition-colors placeholder:text-text-muted focus:border-brand focus:outline-none"
       />
+    </div>
+
+    <!-- 개인정보 수집·이용 동의 (필수) -->
+    <div class="mt-6">
+      <label class="flex cursor-pointer items-start gap-2">
+        <input
+          v-model="agreed"
+          type="checkbox"
+          class="mt-0.5 h-4 w-4 shrink-0 cursor-pointer rounded border-border accent-brand"
+          @change="showAgreeError = false"
+        />
+        <span class="text-sm font-medium text-text-primary">
+          개인정보 수집 및 이용에 동의합니다. <span class="text-warning">(필수)</span>
+        </span>
+      </label>
+      <div class="mt-2 rounded-lg bg-bg-elevated p-3 text-xs leading-relaxed text-text-secondary">
+        <p>수집 항목: 이메일 주소</p>
+        <p>수집 목적: 문의 접수 및 답변</p>
+        <p>보관 기간: 문의 처리 완료 후 1년</p>
+        <p class="mt-1 text-text-muted">
+          ※ 수집된 개인정보는 문의 처리 외 다른 목적으로 사용되지 않습니다.
+        </p>
+      </div>
+      <p v-if="showAgreeError" class="mt-1.5 text-xs text-warning">
+        개인정보 수집·이용에 동의해야 문의를 제출할 수 있습니다.
+      </p>
     </div>
 
     <!-- 액션: 모바일 세로 / 데스크탑 가로 2분할 -->

@@ -1,0 +1,7 @@
+export { default as DrawingSurface } from './DrawingSurface.vue'
+export { default as CanvasNotice } from './CanvasNotice.vue'
+export { default as CanvasToolbar } from './CanvasToolbar.vue'
+export { default as CanvasChip } from './CanvasChip.vue'
+export { useDrawingSurface } from './useDrawingSurface'
+export { CANVAS_RES } from './types'
+export type { Segment } from './types'

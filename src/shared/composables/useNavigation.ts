@@ -11,9 +11,11 @@ export function useNavigation() {
   return {
     toHome: () => router.push({ name: ROUTE_NAME.HOME }),
     toLogin: () => router.push({ name: ROUTE_NAME.LOGIN }),
+    toNotice: () => router.push({ name: ROUTE_NAME.NOTICE }),
     toTerms: () => router.push({ name: ROUTE_NAME.TERMS }),
     toPrivacy: () => router.push({ name: ROUTE_NAME.PRIVACY }),
 
+    toGameList: () => router.push({ name: ROUTE_NAME.GAME_LIST }),
     toGameRooms: (gameId: string) =>
       router.push({ name: ROUTE_NAME.GAME_ROOMS, params: { gameId } }),
     // 게임 플레이 화면. 라우트 이름이 곧 gameId (예: 'sketch-pick').

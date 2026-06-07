@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { RouterLink } from 'vue-router'
 import { Button } from '@/shared/ui'
 import ThemeToggle from '@/shared/ui/ThemeToggle.vue'
 import { useAuthStore } from '@/shared/stores'
@@ -9,9 +8,9 @@ const auth = useAuthStore()
 const nav = useNavigation()
 
 const navItems = [
-  { label: '홈', to: '/' },
-  { label: '게임 목록', to: '/games' },
-  { label: '공지사항', to: '/notice' },
+  { label: '홈', action: nav.toHome },
+  { label: '게임 목록', action: nav.toGameList },
+  { label: '공지사항', action: nav.toNotice },
 ]
 
 async function onLogout() {
@@ -23,7 +22,7 @@ async function onLogout() {
 <template>
   <header class="sticky top-0 z-40 border-b border-border bg-bg/80 backdrop-blur">
     <div class="mx-auto flex h-16 max-w-7xl items-center justify-between px-6">
-      <RouterLink to="/" class="flex items-center gap-3">
+      <button type="button" class="flex items-center gap-3 cursor-pointer" @click="nav.toHome()">
         <span
           class="flex h-10 w-10 items-center justify-center rounded-xl bg-brand text-xl"
           aria-hidden="true"
@@ -31,18 +30,18 @@ async function onLogout() {
           🎮
         </span>
         <span class="text-lg font-bold text-text-primary">놀모아</span>
-      </RouterLink>
+      </button>
 
       <nav class="hidden items-center gap-8 md:flex">
-        <RouterLink
+        <button
           v-for="item in navItems"
-          :key="item.to"
-          :to="item.to"
-          class="text-sm text-text-secondary transition-colors hover:text-text-primary"
-          active-class="text-text-primary"
+          :key="item.label"
+          type="button"
+          class="text-sm text-text-secondary transition-colors hover:text-text-primary cursor-pointer"
+          @click="item.action()"
         >
           {{ item.label }}
-        </RouterLink>
+        </button>
       </nav>
 
       <div class="flex items-center gap-3">

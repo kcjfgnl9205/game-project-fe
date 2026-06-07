@@ -1,12 +1,14 @@
 <script setup lang="ts">
 import { Badge, Button } from '@/shared/ui'
-
+import { useNavigation } from '@/shared/composables'
 const stats = [
-  { value: '4+', label: '미니게임' },
+  { value: '2+', label: '미니게임' },
   { value: '8명', label: '최대 플레이어' },
   { value: '실시간', label: '멀티플레이' },
   { value: '무료', label: '이용 가능' },
 ]
+
+const nav = useNavigation()
 </script>
 
 <template>
@@ -28,11 +30,15 @@ const stats = [
       </p>
 
       <div class="mt-10 flex flex-wrap items-center justify-center gap-4">
-        <Button variant="primary" size="lg">
+        <Button
+          variant="primary"
+          size="lg"
+          right-icon="arrow-right"
+          @click="() => nav.toGameList()"
+        >
           지금 시작하기
           <span aria-hidden="true">›</span>
         </Button>
-        <Button variant="secondary" size="lg">게임 둘러보기</Button>
       </div>
     </div>
 

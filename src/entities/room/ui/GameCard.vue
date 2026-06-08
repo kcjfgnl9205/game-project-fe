@@ -26,10 +26,6 @@ defineProps<{ game: GameSummary }>()
         <span aria-hidden="true">👥</span>
         {{ game.minPlayers }}-{{ game.maxPlayers }}명
       </span>
-      <span v-if="game.totalPlays" class="inline-flex items-center gap-1">
-        <span aria-hidden="true">🏆</span>
-        {{ game.totalPlays.toLocaleString() }}
-      </span>
     </footer>
   </article>
 </template>

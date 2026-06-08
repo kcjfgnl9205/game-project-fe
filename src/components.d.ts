@@ -13,11 +13,8 @@ declare module 'vue' {
   export interface GlobalComponents {
     ILocalChat: typeof import('~icons/local/chat')['default']
     ILocalLock: typeof import('~icons/local/lock')['default']
-    'ILocalLock.': typeof import('~icons/local/lock.')['default']
     ILocalPeople: typeof import('~icons/local/people')['default']
-    ILocalSend: typeof import('~icons/local/send')['default']
     ILocalTimer: typeof import('~icons/local/timer')['default']
-    ILocalUnlock: typeof import('~icons/local/unlock')['default']
     ILocalUnLock: typeof import('~icons/local/un-lock')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']

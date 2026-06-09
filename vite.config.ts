@@ -10,6 +10,8 @@ import { FileSystemIconLoader } from 'unplugin-icons/loaders'
 import Components from 'unplugin-vue-components/vite'
 import { existsSync, readFileSync } from 'node:fs'
 
+import { cloudflare } from "@cloudflare/vite-plugin";
+
 const DEV_DOMAIN = 'local.puzmu.com'
 const keyPath = fileURLToPath(new URL(`./.certs/${DEV_DOMAIN}-key.pem`, import.meta.url))
 const certPath = fileURLToPath(new URL(`./.certs/${DEV_DOMAIN}.pem`, import.meta.url))
@@ -39,6 +41,7 @@ export default defineConfig({
         ),
       },
     }),
+    cloudflare()
   ],
   resolve: {
     alias: {

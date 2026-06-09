@@ -43,3 +43,10 @@ __screenshots__/
 
 # 작업 일지 등 로컬 문서 (git 추적 제외)
 docs/
+
+# wrangler files
+.wrangler
+.dev.vars*
+!.dev.vars.example
+.env*
+!.env.example

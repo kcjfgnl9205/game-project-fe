@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import BaseBadge from '@/shared/ui/BaseBadge.vue'
+import { Badge } from '@/shared/ui'
 import type { GameSummary } from '@/shared/lib/games'
 
 defineProps<{ game: GameSummary }>()
@@ -11,9 +11,9 @@ defineProps<{ game: GameSummary }>()
   >
     <header class="mb-4 flex items-start justify-between">
       <span class="text-3xl" aria-hidden="true">{{ game.icon }}</span>
-      <BaseBadge :tone="game.status === 'available' ? 'brand' : 'warning'">
+      <Badge :tone="game.status === 'available' ? 'brand' : 'warning'">
         {{ game.status === 'available' ? '플레이 가능' : 'Coming Soon' }}
-      </BaseBadge>
+      </Badge>
     </header>
 
     <h3 class="text-lg font-bold text-text-primary">{{ game.name }}</h3>
@@ -25,10 +25,6 @@ defineProps<{ game: GameSummary }>()
       <span class="inline-flex items-center gap-1">
         <span aria-hidden="true">👥</span>
         {{ game.minPlayers }}-{{ game.maxPlayers }}명
-      </span>
-      <span v-if="game.totalPlays" class="inline-flex items-center gap-1">
-        <span aria-hidden="true">🏆</span>
-        {{ game.totalPlays.toLocaleString() }}
       </span>
     </footer>
   </article>

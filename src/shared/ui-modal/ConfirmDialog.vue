@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import BaseButton from '@/shared/ui/BaseButton.vue'
+import { Button } from '@/shared/ui'
 import { useModalStore } from '@/shared/stores'
 
 interface Props {
@@ -24,12 +24,12 @@ const modal = useModalStore()
     <p class="mt-2 text-sm leading-relaxed text-text-secondary">{{ message }}</p>
 
     <div class="mt-6 flex justify-end gap-3">
-      <BaseButton variant="secondary" size="md" @click="modal.close(props.modalId, false)">
+      <Button variant="secondary" size="md" @click="modal.close(props.modalId, false)">
         {{ cancelText }}
-      </BaseButton>
-      <BaseButton variant="primary" size="md" @click="modal.close(props.modalId, true)">
+      </Button>
+      <Button variant="primary" size="md" @click="modal.close(props.modalId, true)">
         {{ confirmText }}
-      </BaseButton>
+      </Button>
     </div>
   </div>
 </template>

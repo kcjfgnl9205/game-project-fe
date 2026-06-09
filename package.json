@@ -1,10 +1,11 @@
 {
-  "name": "game-project",
+  "name": "nolmoa-web",
   "version": "0.0.0",
   "private": true,
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "cert": "node scripts/gen-cert.mjs",
     "build": "run-p type-check \"build-only {@}\" --",
     "preview": "vite preview",
     "build-only": "vite build",
@@ -15,11 +16,14 @@
     "format": "prettier --write --experimental-cli src/"
   },
   "dependencies": {
+    "axios": "^1.16.1",
     "pinia": "^3.0.4",
+    "socket.io-client": "^4.8.3",
     "vue": "^3.5.32",
     "vue-router": "^5.0.4"
   },
   "devDependencies": {
+    "@iconify/utils": "^3.1.3",
     "@tailwindcss/vite": "^4.3.0",
     "@tsconfig/node24": "^24.0.4",
     "@types/node": "^24.12.2",
@@ -36,6 +40,8 @@
     "prettier": "3.8.3",
     "tailwindcss": "^4.3.0",
     "typescript": "~6.0.0",
+    "unplugin-icons": "^23.0.1",
+    "unplugin-vue-components": "^32.1.0",
     "vite": "^8.0.8",
     "vite-plugin-vue-devtools": "^8.1.1",
     "vue-tsc": "^3.2.6"

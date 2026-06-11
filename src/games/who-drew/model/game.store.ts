@@ -66,6 +66,8 @@ let remoteStrokeCb: ((seg: Stroke, by: string) => void) | null = null
 let historyCb: ((strokes: { by: string; seg: Stroke }[]) => void) | null = null
 
 export const useGameStore = defineStore('who-drew-game', () => {
+  // 접속 준비 완료 여부: 소켓 연결 후 첫 lobby:state를 받으면 true.
+  const ready = ref(false)
   const status = ref<Phase>('LOBBY')
   const hostKey = ref<string | null>(null)
   const rounds = ref(0)
@@ -90,6 +92,7 @@ export const useGameStore = defineStore('who-drew-game', () => {
   const result = ref<GameResult | null>(null)
 
   function reset() {
+    ready.value = false
     status.value = 'LOBBY'
     hostKey.value = null
     rounds.value = 0
@@ -148,6 +151,7 @@ export const useGameStore = defineStore('who-drew-game', () => {
     })
 
     socket.on('lobby:state', (s: LobbyState) => {
+      ready.value = true // 첫 상태 수신 = 방 입장 완료 → 로딩 해제
       status.value = s.status
       hostKey.value = s.hostKey
       rounds.value = s.rounds
@@ -256,6 +260,7 @@ export const useGameStore = defineStore('who-drew-game', () => {
   }
 
   return {
+    ready,
     status,
     hostKey,
     rounds,

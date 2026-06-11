@@ -9,6 +9,7 @@ import WhoDrewVoteModal from './WhoDrewVoteModal.vue'
 import WhoDrewResultModal from './WhoDrewResultModal.vue'
 import { CanvasNotice, CanvasChip } from '@/shared/ui-canvas'
 import { ChatPanel } from '@/shared/ui-chat'
+import { GameLoadingScreen } from '@/shared/ui'
 import { useGameStore, type Participant } from '@/games/who-drew/model/game.store'
 import { fetchRoom, leaveRoom } from '@/entities/room/api'
 import type { Room } from '@/entities/room/model'
@@ -94,7 +95,7 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <div v-if="room" class="flex h-dvh flex-col">
+  <div v-if="room && game.ready" class="flex h-dvh flex-col">
     <GameHeader
       game-id="who-drew"
       game-name="그림 마피아"
@@ -177,7 +178,6 @@ onUnmounted(() => {
     </div>
   </div>
 
-  <div v-else class="flex h-dvh items-center justify-center text-sm text-text-muted">
-    {{ error ?? '불러오는 중…' }}
-  </div>
+  <!-- 방 정보 로딩 + 소켓 연결 + 첫 상태 수신 전까지 로딩 화면 -->
+  <GameLoadingScreen v-else :error="error ?? game.error" />
 </template>

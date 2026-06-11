@@ -73,6 +73,9 @@ let remoteStrokeCb: ((s: Stroke[]) => void) | null = null
 let remoteClearCb: (() => void) | null = null
 
 export const useGameStore = defineStore('sketch-pick-game', () => {
+  // 접속 준비 완료 여부: 소켓 연결 후 첫 lobby:state를 받으면 true.
+  // 이 값이 true가 되기 전까지 화면은 로딩 상태로 둔다.
+  const ready = ref(false)
   const status = ref<GamePhase>('LOBBY')
   const players = ref<LobbyPlayer[]>([])
   const hostKey = ref<string | null>(null)
@@ -99,6 +102,7 @@ export const useGameStore = defineStore('sketch-pick-game', () => {
   }
 
   function reset() {
+    ready.value = false
     status.value = 'LOBBY'
     players.value = []
     hostKey.value = null
@@ -163,6 +167,7 @@ export const useGameStore = defineStore('sketch-pick-game', () => {
       players.value.find((player) => player.playerId === playerId)?.nickname ?? '누군가'
 
     socket.on('lobby:state', (state: LobbyState) => {
+      ready.value = true // 첫 상태 수신 = 방 입장 완료 → 로딩 해제
       status.value = state.status
       hostKey.value = state.hostKey
       currentDrawerKey.value = state.currentDrawerKey
@@ -330,6 +335,7 @@ export const useGameStore = defineStore('sketch-pick-game', () => {
   }
 
   return {
+    ready,
     status,
     players,
     hostKey,

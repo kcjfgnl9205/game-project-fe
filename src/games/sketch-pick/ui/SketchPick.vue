@@ -8,6 +8,7 @@ import SketchPickLobbyModal from './SketchPickLobbyModal.vue'
 import SketchPickWordSelectModal from './SketchPickWordSelectModal.vue'
 import { CanvasNotice, CanvasToolbar, CanvasChip } from '@/shared/ui-canvas'
 import { ChatPanel } from '@/shared/ui-chat'
+import { GameLoadingScreen } from '@/shared/ui'
 import { useGameStore, type Participant } from '@/games/sketch-pick/model/game.store'
 import { fetchRoom, leaveRoom } from '@/entities/room/api'
 import type { Room } from '@/entities/room/model'
@@ -118,7 +119,7 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <div class="flex h-dvh flex-col" v-if="room">
+  <div class="flex h-dvh flex-col" v-if="room && game.ready">
     <!-- 헤더 -->
     <GameHeader
       game-id="sketch-pick"
@@ -195,4 +196,7 @@ onUnmounted(() => {
       />
     </div>
   </div>
+
+  <!-- 방 정보 로딩 + 소켓 연결 + 첫 상태 수신 전까지 로딩 화면 -->
+  <GameLoadingScreen v-else :error="error ?? game.error" />
 </template>

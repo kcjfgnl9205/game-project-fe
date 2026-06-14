@@ -130,7 +130,9 @@ export const useGameStore = defineStore('sketch-pick-game', () => {
     }
     console.debug('[sketch-pick] WS config', { configured, wsUrl })
 
-    const transports = import.meta.env.DEV ? ['websocket'] : ['polling', 'websocket']
+    // websocket 단독: polling으로 먼저 붙었다 업그레이드하는 왕복을 없애 입장을 빠르게 한다.
+    // (실시간 그리기 게임은 websocket이 필수라 polling fallback의 실익이 없다. Cloudflare도 WS 지원)
+    const transports = ['websocket']
     console.debug('[sketch-pick] Creating socket with', {
       wsUrl,
       transports,

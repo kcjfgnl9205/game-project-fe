@@ -125,7 +125,8 @@ export const useGameStore = defineStore('who-drew-game', () => {
       wsUrl = `${window.location.protocol}//${window.location.hostname}${window.location.port ? ':' + window.location.port : ''}/who-drew`
     }
 
-    const transports = import.meta.env.DEV ? ['websocket'] : ['polling', 'websocket']
+    // websocket 단독: polling→업그레이드 왕복 제거로 입장 단축 (실시간 게임이라 WS 필수, CF도 지원)
+    const transports = ['websocket']
     socket = io(wsUrl, {
       auth: { roomId, ...auth },
       transports,

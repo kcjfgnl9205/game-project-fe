@@ -67,18 +67,19 @@ async function leaveCurrentRoom() {
   }
 }
 
-onMounted(async () => {
+onMounted(() => {
   if (!roomId.value) return
-  try {
-    room.value = await fetchRoom(roomId.value)
-  } catch (e) {
-    error.value = e instanceof ApiError ? e.message : '방 정보를 불러오지 못했습니다.'
-  }
+  // 소켓 연결과 방 메타(REST)를 병렬로 시작 (순차 await 시 두 왕복 합산되어 느려짐)
   game.connect(roomId.value, {
     token: auth.accessToken ?? undefined,
     guestId: auth.isAuthenticated ? undefined : getGuestId(),
     nickname: auth.isAuthenticated ? (auth.user?.nickname ?? '') : getGuestNickname(),
   })
+  fetchRoom(roomId.value)
+    .then((r) => (room.value = r))
+    .catch((e) => {
+      error.value = e instanceof ApiError ? e.message : '방 정보를 불러오지 못했습니다.'
+    })
   timer = setInterval(() => (now.value = Date.now()), 250)
   window.addEventListener('beforeunload', handlePageUnload)
   window.addEventListener('pagehide', handlePageUnload)

@@ -5,6 +5,7 @@ import type {
   JoinRoomRequest,
   Room,
   RoomListItem,
+  RoomStat,
   UpdateRoomRequest,
 } from './model'
 
@@ -21,6 +22,12 @@ export const fetchRooms = async (params: RoomListParams = {}) => {
 
 export const fetchRoom = async (id: string) => {
   const { data } = await http.get<Room>(`/rooms/${id}`)
+  return data
+}
+
+// 게임별 방 현황(대기/게임중) 카운트. 게임목록 진입 시 1회 호출.
+export const fetchRoomStats = async () => {
+  const { data } = await http.get<RoomStat[]>('/rooms/stats')
   return data
 }
 

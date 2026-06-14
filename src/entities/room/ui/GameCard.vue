@@ -1,7 +1,9 @@
 <script setup lang="ts">
 import type { GameSummary } from '@/shared/lib/games'
 
-defineProps<{ game: GameSummary }>()
+withDefaults(defineProps<{ game: GameSummary; inGameCount?: number }>(), {
+  inGameCount: 0,
+})
 </script>
 
 <template>
@@ -17,6 +19,10 @@ defineProps<{ game: GameSummary }>()
       <span class="inline-flex items-center gap-1">
         <span aria-hidden="true">👥</span>
         {{ game.minPlayers }}-{{ game.maxPlayers }}명
+      </span>
+      <span v-if="inGameCount > 0" class="inline-flex items-center gap-1 text-brand">
+        <span class="h-1.5 w-1.5 rounded-full bg-brand" aria-hidden="true" />
+        게임중 {{ inGameCount }}개
       </span>
     </footer>
   </article>

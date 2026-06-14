@@ -10,7 +10,7 @@ import { FileSystemIconLoader } from 'unplugin-icons/loaders'
 import Components from 'unplugin-vue-components/vite'
 import { existsSync, readFileSync } from 'node:fs'
 
-const DEV_DOMAIN = 'local.puzmu.com'
+const DEV_DOMAIN = 'local.nolmoa.com'
 const keyPath = fileURLToPath(new URL(`./.certs/${DEV_DOMAIN}-key.pem`, import.meta.url))
 const certPath = fileURLToPath(new URL(`./.certs/${DEV_DOMAIN}.pem`, import.meta.url))
 const hasCert = existsSync(keyPath) && existsSync(certPath)

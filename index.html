@@ -32,6 +32,26 @@
     />
     <meta name="twitter:image" content="https://www.nolmoa.com/og-image.png" />
 
+    <!-- 구조화 데이터(JSON-LD): 브랜드/사이트 인식 -->
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@graph": [
+          {
+            "@type": "Organization",
+            "name": "놀모아",
+            "url": "https://www.nolmoa.com/",
+            "logo": "https://www.nolmoa.com/og-image.png"
+          },
+          {
+            "@type": "WebSite",
+            "name": "놀모아",
+            "url": "https://www.nolmoa.com/"
+          }
+        ]
+      }
+    </script>
+
     <!-- 네이버 서치어드바이저 소유확인 -->
     <meta name="naver-site-verification" content="635575b4c49d6c457a939197eb0b7b6dc804fe56" />
   </head>

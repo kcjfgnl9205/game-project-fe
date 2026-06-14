@@ -1,0 +1,9 @@
+User-agent: *
+Allow: /
+
+# 게임 플레이/로그인 등 색인 불필요 경로 제외
+Disallow: /login
+Disallow: /games/sketch-pick/
+Disallow: /games/who-drew/
+
+Sitemap: https://www.nolmoa.com/sitemap.xml

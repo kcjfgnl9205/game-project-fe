@@ -7,7 +7,9 @@ import { useTheme } from '@/shared/composables/useTheme'
 import { configureAuth } from '@/shared/api'
 import { useAuthStore } from '@/shared/stores'
 import { getGuestId } from '@/shared/lib/guest'
+import { initGtm } from '@/shared/lib/analytics'
 
+initGtm() // GTM: VITE_GTM_ID가 있을 때(운영)만 로드
 useTheme() // FOUC 방지: 마운트 전에 .dark 클래스 적용
 
 const app = createApp(App)

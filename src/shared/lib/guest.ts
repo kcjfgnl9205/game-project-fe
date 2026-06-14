@@ -1,6 +1,6 @@
 // 비회원(게스트) 식별자. 프론트에서 UUID를 만들어 보관하고, 같은 사람을 계속 식별한다.
-const GUEST_ID_KEY = 'puzmu.guestId'
-const GUEST_NICKNAME_KEY = 'puzmu.guestNickname'
+const GUEST_ID_KEY = 'nolmoa.guestId'
+const GUEST_NICKNAME_KEY = 'nolmoa.guestNickname'
 
 /** 게스트 UUID. 없으면 생성해서 localStorage에 저장한다. */
 export function getGuestId(): string {

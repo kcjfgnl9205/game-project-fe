@@ -8,6 +8,7 @@ import SketchPickLobbyModal from './SketchPickLobbyModal.vue'
 import SketchPickWordSelectModal from './SketchPickWordSelectModal.vue'
 import { CanvasNotice, CanvasToolbar, CanvasChip } from '@/shared/ui-canvas'
 import { ChatPanel } from '@/shared/ui-chat'
+import { GameLoadingScreen } from '@/shared/ui'
 import { useGameStore, type Participant } from '@/games/sketch-pick/model/game.store'
 import { fetchRoom, leaveRoom } from '@/entities/room/api'
 import type { Room } from '@/entities/room/model'
@@ -81,21 +82,22 @@ async function leaveCurrentRoom() {
   }
 }
 
-onMounted(async () => {
+onMounted(() => {
   if (!roomId.value) return
 
-  // 방 메타(최대 인원 등)는 REST, 실시간 참가자/채팅은 소켓.
-  try {
-    room.value = await fetchRoom(roomId.value)
-  } catch (e) {
-    error.value = e instanceof ApiError ? e.message : '방 정보를 불러오지 못했습니다.'
-  }
-
+  // 소켓 연결과 방 메타(REST)를 병렬로 시작한다.
+  // (순차로 await하면 두 왕복이 합산돼 입장이 느려짐. 화면은 room && game.ready 둘 다 채워지면 렌더)
   game.connect(roomId.value, {
     token: auth.accessToken ?? undefined,
     guestId: auth.isAuthenticated ? undefined : getGuestId(),
     nickname: auth.isAuthenticated ? (auth.user?.nickname ?? '') : getGuestNickname(),
   })
+
+  fetchRoom(roomId.value)
+    .then((r) => (room.value = r))
+    .catch((e) => {
+      error.value = e instanceof ApiError ? e.message : '방 정보를 불러오지 못했습니다.'
+    })
 
   timer = setInterval(() => (now.value = Date.now()), 1000)
   window.addEventListener('beforeunload', handlePageUnload)
@@ -118,7 +120,7 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <div class="flex h-dvh flex-col" v-if="room">
+  <div class="flex h-dvh flex-col" v-if="room && game.ready">
     <!-- 헤더 -->
     <GameHeader
       game-id="sketch-pick"
@@ -195,4 +197,7 @@ onUnmounted(() => {
       />
     </div>
   </div>
+
+  <!-- 방 정보 로딩 + 소켓 연결 + 첫 상태 수신 전까지 로딩 화면 -->
+  <GameLoadingScreen v-else :error="error ?? game.error" />
 </template>

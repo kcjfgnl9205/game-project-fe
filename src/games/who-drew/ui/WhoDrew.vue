@@ -9,6 +9,7 @@ import WhoDrewVoteModal from './WhoDrewVoteModal.vue'
 import WhoDrewResultModal from './WhoDrewResultModal.vue'
 import { CanvasNotice, CanvasChip } from '@/shared/ui-canvas'
 import { ChatPanel } from '@/shared/ui-chat'
+import { GameLoadingScreen } from '@/shared/ui'
 import { useGameStore, type Participant } from '@/games/who-drew/model/game.store'
 import { fetchRoom, leaveRoom } from '@/entities/room/api'
 import type { Room } from '@/entities/room/model'
@@ -66,18 +67,19 @@ async function leaveCurrentRoom() {
   }
 }
 
-onMounted(async () => {
+onMounted(() => {
   if (!roomId.value) return
-  try {
-    room.value = await fetchRoom(roomId.value)
-  } catch (e) {
-    error.value = e instanceof ApiError ? e.message : '방 정보를 불러오지 못했습니다.'
-  }
+  // 소켓 연결과 방 메타(REST)를 병렬로 시작 (순차 await 시 두 왕복 합산되어 느려짐)
   game.connect(roomId.value, {
     token: auth.accessToken ?? undefined,
     guestId: auth.isAuthenticated ? undefined : getGuestId(),
     nickname: auth.isAuthenticated ? (auth.user?.nickname ?? '') : getGuestNickname(),
   })
+  fetchRoom(roomId.value)
+    .then((r) => (room.value = r))
+    .catch((e) => {
+      error.value = e instanceof ApiError ? e.message : '방 정보를 불러오지 못했습니다.'
+    })
   timer = setInterval(() => (now.value = Date.now()), 250)
   window.addEventListener('beforeunload', handlePageUnload)
   window.addEventListener('pagehide', handlePageUnload)
@@ -94,7 +96,7 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <div v-if="room" class="flex h-dvh flex-col">
+  <div v-if="room && game.ready" class="flex h-dvh flex-col">
     <GameHeader
       game-id="who-drew"
       game-name="그림 마피아"
@@ -177,7 +179,6 @@ onUnmounted(() => {
     </div>
   </div>
 
-  <div v-else class="flex h-dvh items-center justify-center text-sm text-text-muted">
-    {{ error ?? '불러오는 중…' }}
-  </div>
+  <!-- 방 정보 로딩 + 소켓 연결 + 첫 상태 수신 전까지 로딩 화면 -->
+  <GameLoadingScreen v-else :error="error ?? game.error" />
 </template>

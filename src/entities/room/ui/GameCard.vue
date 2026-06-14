@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { Badge } from '@/shared/ui'
 import type { GameSummary } from '@/shared/lib/games'
 
 defineProps<{ game: GameSummary }>()
@@ -9,13 +8,6 @@ defineProps<{ game: GameSummary }>()
   <article
     class="group flex h-full flex-col rounded-2xl border border-border bg-bg-card p-6 transition-colors hover:bg-bg-card-hover"
   >
-    <header class="mb-4 flex items-start justify-between">
-      <span class="text-3xl" aria-hidden="true">{{ game.icon }}</span>
-      <Badge :tone="game.status === 'available' ? 'brand' : 'warning'">
-        {{ game.status === 'available' ? '플레이 가능' : 'Coming Soon' }}
-      </Badge>
-    </header>
-
     <h3 class="text-lg font-bold text-text-primary">{{ game.name }}</h3>
     <p class="mt-1 text-sm text-text-secondary">{{ game.description }}</p>
 

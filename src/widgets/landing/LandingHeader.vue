@@ -3,6 +3,7 @@ import { Button } from '@/shared/ui'
 import ThemeToggle from '@/shared/ui/ThemeToggle.vue'
 import { useAuthStore } from '@/shared/stores'
 import { useNavigation } from '@/shared/composables'
+import logoUrl from '@/assets/logo.png'
 
 const auth = useAuthStore()
 const nav = useNavigation()
@@ -23,12 +24,7 @@ async function onLogout() {
   <header class="sticky top-0 z-40 border-b border-border bg-bg/80 backdrop-blur">
     <div class="mx-auto flex h-16 max-w-7xl items-center justify-between px-6">
       <button type="button" class="flex items-center gap-3 cursor-pointer" @click="nav.toHome()">
-        <span
-          class="flex h-10 w-10 items-center justify-center rounded-xl bg-brand text-xl"
-          aria-hidden="true"
-        >
-          🎮
-        </span>
+        <img :src="logoUrl" alt="놀모아 로고" class="h-10 w-10 rounded-xl" />
         <span class="text-lg font-bold text-text-primary">놀모아</span>
       </button>
 

@@ -1,8 +1,9 @@
 <script setup lang="ts">
 import type { GameSummary } from '@/shared/lib/games'
 
-withDefaults(defineProps<{ game: GameSummary; inGameCount?: number }>(), {
-  inGameCount: 0,
+// roomCount: 해당 게임에 개설된 방 수(대기+게임중 합계).
+withDefaults(defineProps<{ game: GameSummary; roomCount?: number }>(), {
+  roomCount: 0,
 })
 </script>
 
@@ -20,9 +21,9 @@ withDefaults(defineProps<{ game: GameSummary; inGameCount?: number }>(), {
         <span aria-hidden="true">👥</span>
         {{ game.minPlayers }}-{{ game.maxPlayers }}명
       </span>
-      <span v-if="inGameCount > 0" class="inline-flex items-center gap-1 text-brand">
-        <span class="h-1.5 w-1.5 rounded-full bg-brand" aria-hidden="true" />
-        게임중 {{ inGameCount }}개
+      <span class="inline-flex items-center gap-1">
+        <span aria-hidden="true">🚪</span>
+        방 {{ roomCount }}개
       </span>
     </footer>
   </article>

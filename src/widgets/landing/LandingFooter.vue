@@ -2,6 +2,7 @@
 import { useModalStore } from '@/shared/stores'
 import { useNavigation } from '@/shared/composables'
 import { InquiryModal } from '@/features/inquiry'
+import logoUrl from '@/assets/logo.png'
 
 const year = new Date().getFullYear()
 const modal = useModalStore()
@@ -18,7 +19,7 @@ const openInquiry = () => {
       class="mx-auto flex max-w-7xl flex-col items-center justify-between gap-3 px-6 py-8 md:flex-row"
     >
       <div class="flex items-center gap-2 text-sm text-text-primary">
-        <span class="text-brand" aria-hidden="true">🎮</span>
+        <img :src="logoUrl" alt="놀모아 로고" class="h-6 w-6 rounded-xl" />
         <span class="font-semibold">놀모아</span>
       </div>
       <div class="flex flex-wrap items-center justify-center gap-x-4 gap-y-2">

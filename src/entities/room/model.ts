@@ -2,6 +2,13 @@ import type { GameType } from '@/shared/lib/games'
 
 export type RoomStatus = 'WAITING' | 'IN_GAME'
 
+/** 게임별 방 현황 (GET /rooms/stats). 게임목록의 "게임중 N개" 표시용. */
+export interface RoomStat {
+  gameType: GameType
+  waiting: number
+  inGame: number
+}
+
 /** 게임별 방 설정. 게임에 따라 채워지는 필드가 다르다. */
 export interface RoomConfig {
   drawTimeSec?: number // SKETCH_PIC

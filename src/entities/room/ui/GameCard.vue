@@ -1,7 +1,10 @@
 <script setup lang="ts">
 import type { GameSummary } from '@/shared/lib/games'
 
-defineProps<{ game: GameSummary }>()
+// roomCount: 해당 게임에 개설된 방 수(대기+게임중 합계).
+withDefaults(defineProps<{ game: GameSummary; roomCount?: number }>(), {
+  roomCount: 0,
+})
 </script>
 
 <template>
@@ -17,6 +20,10 @@ defineProps<{ game: GameSummary }>()
       <span class="inline-flex items-center gap-1">
         <span aria-hidden="true">👥</span>
         {{ game.minPlayers }}-{{ game.maxPlayers }}명
+      </span>
+      <span class="inline-flex items-center gap-1">
+        <span aria-hidden="true">🚪</span>
+        방 {{ roomCount }}개
       </span>
     </footer>
   </article>

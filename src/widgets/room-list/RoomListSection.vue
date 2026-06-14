@@ -1,8 +1,24 @@
 <script setup lang="ts">
+import { onMounted, ref } from 'vue'
 import { RouterLink } from 'vue-router'
 import GameCard from '@/entities/room/ui/GameCard.vue'
-import { games } from '@/shared/lib/games'
+import { games, type GameType } from '@/shared/lib/games'
 import { ROUTE_NAME } from '@/app/router/router-name'
+import { fetchRoomStats } from '@/entities/room/api'
+
+// 게임타입별 개설된 방 수(대기+게임중). 진입 시 1회만 로드한다.
+const roomCountByType = ref<Partial<Record<GameType, number>>>({})
+
+onMounted(async () => {
+  try {
+    const stats = await fetchRoomStats()
+    roomCountByType.value = Object.fromEntries(
+      stats.map((s) => [s.gameType, s.waiting + s.inGame]),
+    )
+  } catch {
+    // 통계 실패해도 게임 목록은 정상 노출 (조용히 무시)
+  }
+})
 </script>
 
 <template>
@@ -21,10 +37,10 @@ import { ROUTE_NAME } from '@/app/router/router-name'
           :to="{ name: ROUTE_NAME.GAME_ROOMS, params: { gameId: game.id } }"
           class="block"
         >
-          <GameCard :game="game" />
+          <GameCard :game="game" :room-count="game.gameType ? (roomCountByType[game.gameType] ?? 0) : 0" />
         </RouterLink>
         <div v-else class="cursor-not-allowed opacity-60">
-          <GameCard :game="game" />
+          <GameCard :game="game" :room-count="game.gameType ? (roomCountByType[game.gameType] ?? 0) : 0" />
         </div>
       </template>
     </div>

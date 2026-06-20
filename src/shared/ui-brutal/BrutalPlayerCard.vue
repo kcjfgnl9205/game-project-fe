@@ -43,11 +43,21 @@ watch(
           : 'bg-slate-50 dark:bg-[#1c1812]'
     "
   >
-    <div
-      class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border-2 border-black text-lg font-black text-black"
-      :style="{ backgroundColor: avatarColor }"
-    >
-      {{ nickname.charAt(0) }}
+    <div class="relative shrink-0">
+      <div
+        class="flex h-10 w-10 items-center justify-center rounded-full border-2 border-black text-lg font-black text-black"
+        :style="{ backgroundColor: avatarColor }"
+      >
+        {{ nickname.charAt(0) }}
+      </div>
+      <!-- 현재 그리는 사람 표시 -->
+      <span
+        v-if="active"
+        class="absolute -right-1.5 -bottom-1.5 flex h-5 w-5 items-center justify-center rounded-full border-2 border-black bg-white text-[10px] shadow-[1px_1px_0_0_#000]"
+        title="그리는 중"
+      >
+        ✏️
+      </span>
     </div>
     <div class="min-w-0 flex-1">
       <p class="flex items-center gap-1 truncate text-sm font-black">

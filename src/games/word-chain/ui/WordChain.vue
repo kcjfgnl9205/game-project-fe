@@ -237,6 +237,25 @@ onUnmounted(() => {
         @send="onSend"
       />
     </div>
+
+    <!-- 데이터 출처 표기 (우리말샘 CC BY-SA 2.0 KR) -->
+    <p class="shrink-0 text-center text-[10px] leading-none text-slate-400">
+      단어·뜻풀이 출처: 국립국어원
+      <a
+        href="https://opendict.korean.go.kr"
+        target="_blank"
+        rel="noopener noreferrer"
+        class="underline"
+        >우리말샘</a
+      >
+      (<a
+        href="https://creativecommons.org/licenses/by-sa/2.0/kr/"
+        target="_blank"
+        rel="noopener noreferrer"
+        class="underline"
+        >CC BY-SA 2.0 KR</a
+      >)
+    </p>
   </div>
 
   <GameLoadingScreen v-else :error="error ?? game.error" />

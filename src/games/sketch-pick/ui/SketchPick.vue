@@ -1,10 +1,17 @@
 <script setup lang="ts">
-import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
+import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { onBeforeRouteLeave, useRoute } from 'vue-router'
 import SketchPickCanvas from './SketchPickCanvas.vue'
 import SketchPickLobbyModal from './SketchPickLobbyModal.vue'
 import SketchPickWordSelectModal from './SketchPickWordSelectModal.vue'
 import { GameLoadingScreen } from '@/shared/ui'
+import {
+  BRUT,
+  BRUT_LG,
+  avatarColor,
+  BrutalChat,
+  BrutalPlayerCard,
+} from '@/shared/ui-brutal'
 import { useGameStore, type Participant } from '@/games/sketch-pick/model/game.store'
 import { fetchRoom, leaveRoom } from '@/entities/room/api'
 import type { Room } from '@/entities/room/model'
@@ -17,10 +24,6 @@ const route = useRoute()
 const auth = useAuthStore()
 const game = useGameStore()
 const nav = useNavigation()
-
-// 네오브루탈리즘 카드 공통 클래스 (굵은 테두리 + 둥근 모서리 + 하드 그림자)
-const BRUT = 'rounded-[28px] border-4 border-black shadow-[6px_6px_0_0_#000]'
-const BRUT_LG = 'rounded-[32px] border-4 border-black shadow-[10px_10px_0_0_#000]'
 
 const room = ref<Room | null>(null)
 const error = ref<string | null>(null)
@@ -51,7 +54,6 @@ const seconds = computed(() => {
   return Math.max(0, Math.ceil((game.turnEndsAt - now.value) / 1000))
 })
 
-// 상단 상태 라벨
 const statusLabel = computed(() => {
   switch (game.status) {
     case 'WORD_SELECT':
@@ -78,25 +80,6 @@ const participants = computed<Participant[]>(() =>
       isDrawing: p.playerId === game.currentDrawerKey,
       isMe: p.playerId === myPlayerId.value,
     })),
-)
-
-// 아바타 색(순위 기준 고정 팔레트)
-const AVATAR_COLORS = ['#FFB300', '#00D8A5', '#FF6B6B', '#4F46E5', '#a855f7', '#3b82f6']
-const avatarColor = (rank: number) => AVATAR_COLORS[(rank - 1) % AVATAR_COLORS.length]
-
-// ===== 채팅 입력 =====
-const chatInput = ref('')
-const chatScroll = ref<HTMLElement | null>(null)
-function submitChat() {
-  const text = chatInput.value.trim()
-  if (!text) return
-  game.sendChat(text)
-  chatInput.value = ''
-}
-// 새 메시지 오면 맨 아래로
-watch(
-  () => game.chat.length,
-  () => nextTick(() => chatScroll.value?.scrollTo({ top: chatScroll.value.scrollHeight })),
 )
 
 function onExit() {
@@ -161,7 +144,6 @@ onUnmounted(() => {
   >
     <!-- ===== 좌측: 타이틀 + 참가자 ===== -->
     <aside class="flex shrink-0 flex-col gap-3 sm:gap-4 lg:w-64 xl:w-72">
-      <!-- 타이틀 카드 -->
       <div :class="['p-5', BRUT, 'bg-[#FFB300]']">
         <button
           type="button"
@@ -176,46 +158,28 @@ onUnmounted(() => {
         </p>
       </div>
 
-      <!-- 참가자 카드 -->
-      <div
-        :class="['flex min-h-0 flex-1 flex-col p-4', BRUT, 'bg-white dark:bg-[#262019]']"
-      >
+      <div :class="['flex min-h-0 flex-1 flex-col p-4', BRUT, 'bg-white dark:bg-[#262019]']">
         <h2 class="font-game mb-3 text-lg text-slate-400">
           PLAYERS · {{ participants.length }}/{{ room.maxPlayers }}
         </h2>
         <div class="flex min-h-0 flex-1 flex-col gap-2.5 overflow-y-auto pr-1">
-          <div
+          <BrutalPlayerCard
             v-for="p in participants"
             :key="p.id"
-            class="flex items-center gap-2.5 rounded-2xl border-2 border-black p-2.5 shadow-[3px_3px_0_0_#000]"
-            :class="
-              p.isMe
-                ? 'bg-[#00D8A5]/25 dark:bg-[#00D8A5]/15'
-                : 'bg-slate-50 dark:bg-[#1c1812]'
-            "
+            :nickname="p.nickname"
+            :avatar-color="avatarColor(p.rank - 1)"
+            :is-host="p.isHost"
+            :is-me="p.isMe"
+            :active="p.isDrawing"
           >
-            <div
-              class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border-2 border-black text-lg font-black text-black"
-              :style="{ backgroundColor: avatarColor(p.rank) }"
-            >
-              {{ p.nickname.charAt(0) }}
-            </div>
-            <div class="min-w-0 flex-1">
-              <p class="flex items-center gap-1 truncate text-sm font-black">
-                <span class="truncate">{{ p.nickname }}</span>
-                <span v-if="p.isHost" title="방장">👑</span>
-              </p>
-              <p class="text-xs font-bold text-slate-500 dark:text-[#9c9079]">{{ p.score }} pts</p>
-            </div>
-            <span v-if="p.isDrawing" class="shrink-0 text-lg" title="그리는 중">✏️</span>
-          </div>
+            {{ p.score }}점
+          </BrutalPlayerCard>
         </div>
       </div>
     </aside>
 
     <!-- ===== 중앙: 제시어바 + 캔버스 ===== -->
     <main class="flex min-h-0 min-w-0 flex-1 flex-col gap-3 sm:gap-4">
-      <!-- 제시어 / 타이머 바 -->
       <div
         :class="['flex items-center justify-between gap-3 p-3 sm:p-4', BRUT, 'bg-white dark:bg-[#262019]']"
       >
@@ -242,13 +206,9 @@ onUnmounted(() => {
         </div>
       </div>
 
-      <!-- 캔버스 카드 -->
-      <div
-        :class="['relative flex min-h-0 flex-1 flex-col overflow-hidden', BRUT_LG, 'bg-[#FDFBF7]']"
-      >
+      <div :class="['relative flex min-h-0 flex-1 flex-col overflow-hidden', BRUT_LG, 'bg-[#FDFBF7]']">
         <SketchPickCanvas :my-player-id="myPlayerId">
           <template #overlay="t">
-            <!-- 안내(에러/공지) -->
             <div
               v-if="game.error || game.announcement"
               class="pointer-events-none absolute left-1/2 top-4 -translate-x-1/2 rounded-2xl border-2 border-black bg-white px-4 py-2 text-sm font-bold text-black shadow-[4px_4px_0_0_#000]"
@@ -256,7 +216,6 @@ onUnmounted(() => {
               {{ game.error ?? game.announcement }}
             </div>
 
-            <!-- 로비 / 단어선택 모달 -->
             <SketchPickLobbyModal :my-player-id="myPlayerId" />
             <SketchPickWordSelectModal :my-player-id="myPlayerId" />
 
@@ -265,7 +224,6 @@ onUnmounted(() => {
               v-if="t.canDraw"
               class="absolute bottom-5 left-1/2 flex -translate-x-1/2 items-center gap-3 rounded-[24px] border-4 border-black bg-white p-3 shadow-[6px_6px_0_0_#000] dark:bg-[#262019]"
             >
-              <!-- 색상 팔레트 -->
               <div class="flex flex-wrap gap-1.5 border-r-2 border-black/10 pr-3">
                 <button
                   v-for="c in t.palette"
@@ -282,7 +240,6 @@ onUnmounted(() => {
                 />
               </div>
 
-              <!-- 굵기 -->
               <div class="flex items-center gap-1">
                 <button
                   type="button"
@@ -291,7 +248,7 @@ onUnmounted(() => {
                 >
                   −
                 </button>
-                <span class="w-4 text-center font-game text-lg">{{ t.brushSize }}</span>
+                <span class="font-game w-4 text-center text-lg">{{ t.brushSize }}</span>
                 <button
                   type="button"
                   class="press flex h-7 w-7 items-center justify-center rounded-lg border-2 border-black bg-slate-100 text-sm font-black text-black shadow-[2px_2px_0_0_#000] dark:bg-[#1c1812] dark:text-white"
@@ -301,7 +258,6 @@ onUnmounted(() => {
                 </button>
               </div>
 
-              <!-- 지우개 / 전체삭제 -->
               <div class="flex gap-2">
                 <button
                   type="button"
@@ -327,62 +283,9 @@ onUnmounted(() => {
 
     <!-- ===== 우측: 채팅 ===== -->
     <aside class="flex shrink-0 flex-col lg:w-72 xl:w-80">
-      <div
-        :class="['flex min-h-0 flex-1 flex-col p-4', BRUT, 'bg-white dark:bg-[#262019]']"
-      >
-        <h2 class="font-game mb-3 text-lg text-slate-400">CHAT</h2>
-        <div ref="chatScroll" class="flex min-h-0 flex-1 flex-col gap-2.5 overflow-y-auto pr-1">
-          <template v-for="m in game.chat" :key="m.key">
-            <p
-              v-if="m.system"
-              class="text-center text-xs font-bold text-slate-400 dark:text-[#7c7263]"
-            >
-              {{ m.text }}
-            </p>
-            <div
-              v-else
-              class="rounded-2xl border-2 border-black bg-slate-100 p-2.5 text-sm shadow-[2px_2px_0_0_#000] dark:bg-[#1c1812]"
-            >
-              <span class="font-black text-[#4F46E5] dark:text-[#a5b4fc]">{{ m.nickname }}:</span>
-              {{ m.text }}
-            </div>
-          </template>
-        </div>
-        <form class="mt-3 flex gap-2" @submit.prevent="submitChat">
-          <input
-            v-model="chatInput"
-            type="text"
-            placeholder="정답은?"
-            class="min-w-0 flex-1 rounded-xl border-2 border-black bg-[#FFF9E1] px-3 py-2 text-sm font-bold text-black focus:outline-none dark:bg-[#1c1812] dark:text-white"
-          />
-          <button
-            type="submit"
-            class="press flex shrink-0 items-center justify-center rounded-xl border-2 border-black bg-[#4F46E5] px-3 py-2 text-white shadow-[3px_3px_0_0_#000]"
-          >
-            ➤
-          </button>
-        </form>
-      </div>
+      <BrutalChat :messages="game.chat" placeholder="정답은?" @send="game.sendChat" />
     </aside>
   </div>
 
-  <!-- 방 정보 로딩 + 소켓 연결 + 첫 상태 수신 전까지 로딩 화면 -->
   <GameLoadingScreen v-else :error="error ?? game.error" />
 </template>
-
-<style scoped>
-.game-root {
-  font-family: 'Nanum Gothic', sans-serif;
-}
-.font-game {
-  font-family: 'Gaegu', cursive;
-}
-/* 실제 게임 버튼처럼 눌리는 효과 */
-.press {
-  transition: transform 0.08s ease, box-shadow 0.08s ease;
-}
-.press:active {
-  transform: translate(3px, 3px);
-  box-shadow: 0 0 0 rgba(0, 0, 0, 1) !important;
-}
-</style>

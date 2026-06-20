@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import { Button } from '@/shared/ui'
-import { ModalShell } from '@/shared/ui-modal'
+import { BrutalModalShell, BrutalButton } from '@/shared/ui-brutal'
 import { useGameStore } from '@/games/who-drew/model/game.store'
 
 const props = defineProps<{ myPlayerId: string }>()
@@ -21,37 +20,26 @@ const accusedText = computed(() => {
 </script>
 
 <template>
-  <ModalShell contained :open="game.status === 'RESULT' && !!game.result">
+  <BrutalModalShell contained :open="game.status === 'RESULT' && !!game.result">
     <h3
-      class="text-center text-xl font-bold"
-      :class="game.result?.winner === 'CIVILIAN' ? 'text-brand' : 'text-warning'"
+      class="font-game text-center text-3xl"
+      :class="game.result?.winner === 'CIVILIAN' ? 'text-[#00D8A5]' : 'text-[#FF6B6B]'"
     >
       {{ game.result?.winner === 'CIVILIAN' ? '시민 승리 🎉' : '마피아 승리 🕵️' }}
     </h3>
-    <div class="mt-4 space-y-1.5 text-sm text-text-secondary">
-      <p>
-        마피아:
-        <b class="text-text-primary">{{ nameOf(game.result?.mafiaKey ?? null) }}</b>
-      </p>
-      <p>
-        지목된 사람:
-        <b class="text-text-primary">{{ accusedText }}</b>
-      </p>
-      <p>시민 단어: <b class="text-text-primary">{{ game.result?.civilianWord }}</b></p>
-      <p>마피아 단어: <b class="text-text-primary">{{ game.result?.mafiaWord }}</b></p>
+    <div class="mt-4 space-y-1.5 text-sm font-bold text-slate-500 dark:text-[#9c9079]">
+      <p>마피아: <b class="text-[#161310] dark:text-[#f2ead6]">{{ nameOf(game.result?.mafiaKey ?? null) }}</b></p>
+      <p>지목된 사람: <b class="text-[#161310] dark:text-[#f2ead6]">{{ accusedText }}</b></p>
+      <p>시민 단어: <b class="text-[#161310] dark:text-[#f2ead6]">{{ game.result?.civilianWord }}</b></p>
+      <p>마피아 단어: <b class="text-[#161310] dark:text-[#f2ead6]">{{ game.result?.mafiaWord }}</b></p>
     </div>
     <div class="mt-5">
-      <Button
-        v-if="isHost"
-        variant="primary"
-        size="lg"
-        class="w-full"
-        :disabled="game.players.length < 4"
-        @click="game.startGame()"
-      >
+      <BrutalButton v-if="isHost" :disabled="game.players.length < 4" @click="game.startGame()">
         다시 시작
-      </Button>
-      <p v-else class="text-center text-sm text-text-muted">방장이 다시 시작하기를 기다리는 중…</p>
+      </BrutalButton>
+      <p v-else class="text-center text-sm font-bold text-slate-400">
+        방장이 다시 시작하기를 기다리는 중…
+      </p>
     </div>
-  </ModalShell>
+  </BrutalModalShell>
 </template>

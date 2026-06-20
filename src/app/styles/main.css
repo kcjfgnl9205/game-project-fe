@@ -63,3 +63,22 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
+
+/* ===== 게임 화면(네오브루탈리즘) 전용 폰트/효과 =====
+   .game-root를 단 화면에서만 손글씨풍 폰트 적용 (다른 페이지엔 영향 없음) */
+.game-root {
+  font-family: 'Nanum Gothic', sans-serif;
+}
+.font-game {
+  font-family: 'Gaegu', cursive;
+}
+/* 게임 버튼 누름 효과 (그림자 사라지며 눌리는 느낌) */
+.press {
+  transition:
+    transform 0.08s ease,
+    box-shadow 0.08s ease;
+}
+.press:active {
+  transform: translate(3px, 3px);
+  box-shadow: 0 0 0 rgba(0, 0, 0, 1) !important;
+}

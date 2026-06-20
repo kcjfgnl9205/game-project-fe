@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import { Button } from '@/shared/ui'
-import { ModalShell } from '@/shared/ui-modal'
+import { BrutalModalShell, BrutalButton } from '@/shared/ui-brutal'
 import { useGameStore } from '@/games/who-drew/model/game.store'
 
 const props = defineProps<{ myPlayerId: string; seconds: number }>()
@@ -14,25 +13,24 @@ const nameOf = (key: string | null) =>
 </script>
 
 <template>
-  <ModalShell contained :open="game.status === 'VOTE'">
-    <h3 class="text-center text-lg font-bold text-text-primary">마피아를 지목하세요</h3>
-    <p class="mt-1 text-center text-xs text-text-muted">
+  <BrutalModalShell contained :open="game.status === 'VOTE'">
+    <h3 class="font-game text-center text-2xl">마피아를 지목하세요</h3>
+    <p class="mt-1 text-center text-xs font-bold text-slate-400">
       {{ game.voteInfo.voted }}/{{ game.voteInfo.total }} 투표 · {{ seconds }}초
     </p>
     <div class="mt-4 flex flex-col gap-2">
-      <Button
+      <BrutalButton
         v-for="c in voteCandidates"
         :key="c.key"
         :variant="game.myVote === c.key ? 'primary' : 'outline'"
-        size="lg"
         :disabled="!!game.myVote"
         @click="game.vote(c.key)"
       >
         {{ c.nickname }}
-      </Button>
+      </BrutalButton>
     </div>
-    <p v-if="game.myVote" class="mt-3 text-center text-sm text-brand">
+    <p v-if="game.myVote" class="mt-3 text-center text-sm font-bold text-[#00D8A5]">
       {{ nameOf(game.myVote) }}님에게 투표 완료
     </p>
-  </ModalShell>
+  </BrutalModalShell>
 </template>

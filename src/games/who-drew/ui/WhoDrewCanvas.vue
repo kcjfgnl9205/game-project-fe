@@ -90,7 +90,7 @@ onBeforeUnmount(() => {
 <template>
   <DrawingSurface
     ref="surface"
-    wrap-class="p-3"
+    wrap-class="bg-[#FDFBF7] p-4 rounded-[20px]"
     :can-draw="canDraw"
     :active="isMyTurn"
     :cursor-size-px="cursorSizePx"

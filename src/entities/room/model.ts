@@ -9,11 +9,18 @@ export interface RoomStat {
   inGame: number
 }
 
+/** 끝말잇기 게임 방식 */
+export type WordChainMode = 'ROUND' | 'TOURNAMENT'
+
 /** 게임별 방 설정. 게임에 따라 채워지는 필드가 다르다. */
 export interface RoomConfig {
   drawTimeSec?: number // SKETCH_PIC
   rounds?: number // WHO_DREW
-  turnTimeSec?: number // WHO_DREW
+  turnTimeSec?: number // WHO_DREW / WORD_CHAIN
+  // WORD_CHAIN
+  mode?: WordChainMode
+  roundCount?: number
+  allowKillerWord?: boolean
 }
 
 /** 방 목록 항목 (GET /rooms). 호스트/참가자 정보는 상세에서만 온다. */

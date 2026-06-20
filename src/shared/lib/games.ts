@@ -1,7 +1,7 @@
 export type GameStatus = 'available' | 'coming-soon'
 
 // 백엔드 Room.gameType(enum)과 매핑. 방 목록을 게임별로 필터링할 때 쓴다.
-export type GameType = 'SKETCH_PIC' | 'WHO_DREW'
+export type GameType = 'SKETCH_PIC' | 'WHO_DREW' | 'WORD_CHAIN'
 
 export interface GameSummary {
   id: string
@@ -34,5 +34,15 @@ export const games: GameSummary[] = [
     maxPlayers: 8,
     status: 'available',
     gameType: 'WHO_DREW',
+  },
+  {
+    id: 'word-chain',
+    name: '끝말잇기',
+    description: '단어를 이어가며 승부! (두음법칙 적용)',
+    icon: '🔗',
+    minPlayers: 2,
+    maxPlayers: 8,
+    status: 'available',
+    gameType: 'WORD_CHAIN',
   },
 ]

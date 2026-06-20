@@ -171,6 +171,7 @@ onUnmounted(() => {
             :is-host="p.isHost"
             :is-me="p.isMe"
             :active="p.isDrawing"
+            :score-pop="game.scorePops[p.id] ?? null"
           >
             {{ p.score }}점
           </BrutalPlayerCard>

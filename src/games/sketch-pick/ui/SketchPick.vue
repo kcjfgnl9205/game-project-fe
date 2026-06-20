@@ -244,7 +244,7 @@ onUnmounted(() => {
 
       <!-- 캔버스 카드 -->
       <div
-        :class="['relative flex min-h-0 flex-1 items-center justify-center overflow-hidden', BRUT_LG, 'bg-[#FDFBF7]']"
+        :class="['relative flex min-h-0 flex-1 flex-col overflow-hidden', BRUT_LG, 'bg-[#FDFBF7]']"
       >
         <SketchPickCanvas :my-player-id="myPlayerId">
           <template #overlay="t">

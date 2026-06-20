@@ -11,7 +11,6 @@ export {}
 /* prettier-ignore */
 declare module 'vue' {
   export interface GlobalComponents {
-    ILocalChat: typeof import('~icons/local/chat')['default']
     ILocalLock: typeof import('~icons/local/lock')['default']
     ILocalPeople: typeof import('~icons/local/people')['default']
     ILocalTimer: typeof import('~icons/local/timer')['default']

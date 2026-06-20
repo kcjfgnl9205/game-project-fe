@@ -34,6 +34,13 @@ defineProps<Props>()
       <span v-if="room.gameType === 'WHO_DREW'">
         {{ room.config.rounds }}바퀴 · 한 획 {{ room.config.turnTimeSec }}초
       </span>
+      <span v-else-if="room.gameType === 'WORD_CHAIN'">
+        {{ room.config.mode === 'TOURNAMENT' ? '토너먼트' : '라운드제'
+        }}<template v-if="room.config.mode !== 'TOURNAMENT'">
+          · {{ room.config.roundCount }}R</template
+        >
+        · 턴 {{ room.config.turnTimeSec }}초
+      </span>
       <span v-else>{{ room.config.drawTimeSec }}초</span>
     </div>
 

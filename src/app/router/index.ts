@@ -9,6 +9,7 @@ import { termsRoute } from '@/pages/terms'
 import { privacyRoute } from '@/pages/privacy'
 import { sketchPickRoute } from '@/games/sketch-pick'
 import { whoDrewRoute } from '@/games/who-drew'
+import { wordChainRoute } from '@/games/word-chain'
 import { ROUTE_NAME } from './router-name'
 import { useAuthStore } from '@/shared/stores'
 
@@ -32,7 +33,7 @@ const router = createRouter({
     {
       path: '/games',
       component: () => import('@/app/layouts/GameLayout.vue'),
-      children: [sketchPickRoute, whoDrewRoute /* , wordChainRoute, ... */],
+      children: [sketchPickRoute, whoDrewRoute, wordChainRoute],
     },
   ],
 })
@@ -50,6 +51,7 @@ const ROUTE_TITLES: Record<string, string> = {
   [ROUTE_NAME.PRIVACY]: `개인정보처리방침 | ${SUFFIX}`,
   [ROUTE_NAME.SKETCH_PICK]: `그림 맞추기 | ${SUFFIX}`,
   [ROUTE_NAME.WHO_DREW]: `그림 마피아 | ${SUFFIX}`,
+  [ROUTE_NAME.WORD_CHAIN]: `끝말잇기 | ${SUFFIX}`,
 }
 
 router.afterEach((to) => {

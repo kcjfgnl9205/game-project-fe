@@ -11,4 +11,5 @@ export const ROUTE_NAME = {
   // games — 각 게임이 자기 route를 가짐 (값 = gameId)
   SKETCH_PICK: 'sketch-pick',
   WHO_DREW: 'who-drew',
+  WORD_CHAIN: 'word-chain',
 } as const
